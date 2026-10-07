@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e1d3e25468439a42813f369dc7ea950, type: 3}
+  m_Name: Upg_DigPower
+  m_EditorClassIdentifier: 
+  id: upgrade_dig_power
+  displayName: "Potencia de excavaci\xF3n"
+  type: 0
+  maxLevel: 4
+  baseCost: 100
+  costGrowth: 1.6
+  valuePerLevel:
+  - 1
+  - 2
+  - 4
+  - 7

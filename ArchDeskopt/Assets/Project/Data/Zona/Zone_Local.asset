@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4688aebe5e8e8994eacf287417443ed4, type: 3}
+  m_Name: Zone_Local
+  m_EditorClassIdentifier: 
+  id: zone_local
+  displayName: Yacimiento Local
+  background: {fileID: 0}
+  unlockCost: 0
+  activityPointsPerFind: 1000
+  items:
+  - {fileID: 11400000, guid: 06b3dacc3e42a064ebca5f0216142587, type: 2}
+  - {fileID: 11400000, guid: 235d51e67f56f2940859e1545d308c25, type: 2}
+  - {fileID: 11400000, guid: 42c03b7f9be3f7d459a5ff5ec0b769bf, type: 2}

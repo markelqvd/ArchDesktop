@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fa9208b0c7dd7e4884f6b51673744b1, type: 3}
+  m_Name: Item_PotteryShard
+  m_EditorClassIdentifier: 
+  id: item_pottery_shard
+  displayName: Fragmento de ceramica
+  description: 
+  era: Prehistoria
+  sprite: {fileID: 0}
+  rarity: {fileID: 11400000, guid: 4800b115c0da7c744bd043ec8a33946b, type: 2}
+  zone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
+  baseIncomePerMinute: 10
+  levelIncomes: []
+  baseLevelUpCost: 50
+  costGrowth: 1.5
+  restorationType: 0
