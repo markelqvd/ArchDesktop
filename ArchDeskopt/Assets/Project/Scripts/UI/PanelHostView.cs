@@ -43,7 +43,10 @@ namespace Archaeo.UI
             {
                 optionsPanel.SetActive(false);
                 if (dropdown != null)
+                {
                     dropdown.OptionsRequested += () => Toggle(optionsPanel);
+                    dropdown.ResizeRequested += () => Show(optionsPanel);
+                }
             }
 
             area.gameObject.SetActive(false);

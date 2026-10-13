@@ -148,10 +148,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f23aa41947c18b41a492a6e96b91c23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 480
-  height: 640
+  width: 600
+  height: 400
   borderless: 1
   defaultAlwaysOnTop: 1
+  reservedPanelHeight: 320
 --- !u!4 &838795668
 Transform:
   m_ObjectHideFlags: 0

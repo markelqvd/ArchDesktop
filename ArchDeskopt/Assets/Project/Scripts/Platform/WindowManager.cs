@@ -8,8 +8,8 @@ using System.Runtime.InteropServices;
 namespace Archaeo.Platform
 {
     /// Gestiona la ventana del juego en Windows: tamaño, sin bordes,
-    /// siempre visible, arrastre, posición recordada, minimizar, cerrar
-    /// y crecimiento hacia arriba para los paneles.
+    /// siempre visible, arrastre, posición y escala recordadas, minimizar,
+    /// cerrar y crecimiento hacia arriba para los paneles.
     /// En el Editor no hace nada (para no modificar la ventana de Unity).
     /// Colócalo en un objeto de la escena Boot.
     public class WindowManager : MonoBehaviour
@@ -22,18 +22,31 @@ namespace Archaeo.Platform
         [SerializeField] bool borderless = true;
         [SerializeField] bool defaultAlwaysOnTop = true;
 
+        [Tooltip("Alto máximo de la zona de paneles (unidades). Sirve para calcular el tamaño máximo que cabe en pantalla.")]
+        [SerializeField] int reservedPanelHeight = 400;
+
         const string KeyX = "window_x";
         const string KeyY = "window_y";
         const string KeyTop = "window_always_on_top";
+        const string KeyScale = "window_scale";
+
+        public const float MinScale = 0.5f;
+        public const float ScaleStep = 0.25f;
 
         public bool AlwaysOnTop { get; private set; }
+        public float Scale { get; private set; } = 1f;
+
+        /// Se dispara cuando cambia la escala (la usa el Canvas para escalar la UI).
+        public event Action<float> ScaleChanged;
 
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
             AlwaysOnTop = PlayerPrefs.GetInt(KeyTop, defaultAlwaysOnTop ? 1 : 0) == 1;
+            Scale = Mathf.Clamp(PlayerPrefs.GetFloat(KeyScale, 1f), MinScale, 2f);
         }
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
@@ -42,11 +55,24 @@ namespace Archaeo.Platform
         bool dragging;
         int dragCursorX, dragCursorY, dragWinX, dragWinY;
 
-        float scale = 1f;   // se usará al ajustar el tamaño
-        int extraPx;        // alto extra actual (zona de paneles), en píxeles
+        int extraUnits;     // alto extra de la zona de paneles, en unidades de referencia
+        int extraPx;        // ese mismo alto extra, en píxeles
 
-        int WidthPx => Mathf.RoundToInt(width * scale);
-        int HeightPx => Mathf.RoundToInt(height * scale);
+        int WidthPx => Mathf.RoundToInt(width * Scale);
+        int HeightPx => Mathf.RoundToInt(height * Scale);
+
+        /// Mayor escala con la que cabe la ventana (con un panel abierto) en la pantalla principal.
+        /// Nunca baja de 1: el 100 % siempre está permitido.
+        public float MaxScale
+        {
+            get
+            {
+                int screenH = Native.GetSystemMetrics(Native.SM_CYSCREEN);
+                float fit = (screenH - 80f) / (height + reservedPanelHeight);
+                float stepped = Mathf.Floor(fit / ScaleStep) * ScaleStep;
+                return Mathf.Clamp(stepped, 1f, 2f);
+            }
+        }
 
         IEnumerator Start()
         {
@@ -59,6 +85,10 @@ namespace Archaeo.Platform
 
             hwnd = Native.GetActiveWindow();
             if (hwnd == IntPtr.Zero) yield break;
+
+            // Si la escala guardada ya no cabe (otro monitor), reducirla
+            Scale = Mathf.Min(Scale, MaxScale);
+            ScaleChanged?.Invoke(Scale);
 
             // 2. Quitar bordes y barra de título
             if (borderless)
@@ -112,8 +142,8 @@ namespace Archaeo.Platform
         {
             if (hwnd == IntPtr.Zero || Native.IsIconic(hwnd)) return;
 
-            int newExtra = Mathf.Max(0, Mathf.RoundToInt(units * scale));
-            if (newExtra == extraPx) return;
+            int newExtra = Mathf.Max(0, Mathf.RoundToInt(units * Scale));
+            if (newExtra == extraPx && units == extraUnits) return;
 
             Native.GetWindowRect(hwnd, out Native.RECT r);
             int mainTop = r.Top + extraPx;   // borde superior de la ventana principal
@@ -123,9 +153,45 @@ namespace Archaeo.Platform
             int vy = Native.GetSystemMetrics(Native.SM_YVIRTUALSCREEN);
             if (newTop < vy) newTop = vy;
 
+            extraUnits = Mathf.Max(0, units);
             extraPx = newExtra;
             Native.SetWindowPos(hwnd, IntPtr.Zero, r.Left, newTop, WidthPx, HeightPx + extraPx,
                 Native.SWP_NOZORDER | Native.SWP_NOACTIVATE);
+        }
+
+        /// Cambia la escala de la ventana y de la UI, manteniendo la proporción.
+        public void SetScale(float value)
+        {
+            value = Mathf.Clamp(value, MinScale, MaxScale);
+            if (Mathf.Approximately(value, Scale)) return;
+
+            Scale = value;
+            PlayerPrefs.SetFloat(KeyScale, Scale);
+            ScaleChanged?.Invoke(Scale);
+
+            if (hwnd == IntPtr.Zero || Native.IsIconic(hwnd)) return;
+
+            Native.GetWindowRect(hwnd, out Native.RECT r);
+            int mainTop = r.Top + extraPx;                       // con el extra anterior
+            extraPx = Mathf.RoundToInt(extraUnits * Scale);      // extra con la nueva escala
+            int totalH = HeightPx + extraPx;
+
+            int newLeft = r.Left;
+            int newTop = mainTop - extraPx;
+
+            // Mantener la ventana dentro de la pantalla
+            int vx = Native.GetSystemMetrics(Native.SM_XVIRTUALSCREEN);
+            int vy = Native.GetSystemMetrics(Native.SM_YVIRTUALSCREEN);
+            int vw = Native.GetSystemMetrics(Native.SM_CXVIRTUALSCREEN);
+            int vh = Native.GetSystemMetrics(Native.SM_CYVIRTUALSCREEN);
+            if (newTop + totalH > vy + vh) newTop = vy + vh - totalH;
+            if (newTop < vy) newTop = vy;
+            if (newLeft + WidthPx > vx + vw) newLeft = vx + vw - WidthPx;
+            if (newLeft < vx) newLeft = vx;
+
+            Native.SetWindowPos(hwnd, IntPtr.Zero, newLeft, newTop, WidthPx, totalH,
+                Native.SWP_NOZORDER | Native.SWP_NOACTIVATE);
+            SavePosition();
         }
 
         public void BeginDrag()
@@ -196,6 +262,7 @@ namespace Archaeo.Platform
             public const int VK_LBUTTON = 0x01;
 
             public const int SM_CXSCREEN = 0;
+            public const int SM_CYSCREEN = 1;
             public const int SM_XVIRTUALSCREEN = 76;
             public const int SM_YVIRTUALSCREEN = 77;
             public const int SM_CXVIRTUALSCREEN = 78;
@@ -217,6 +284,8 @@ namespace Archaeo.Platform
         }
 #else
         // ───────────── Editor / otras plataformas: sin efecto ─────────────
+        public float MaxScale => 1f;
+
         IEnumerator Start()
         {
             Screen.SetResolution(width, height, FullScreenMode.Windowed);
@@ -228,6 +297,7 @@ namespace Archaeo.Platform
         public void SetAlwaysOnTop(bool value) { AlwaysOnTop = value; }
         public void Minimize() { }
         public void SetExtraHeight(int units) { }
+        public void SetScale(float value) { }
 #endif
 
         public void Quit() => Application.Quit();
