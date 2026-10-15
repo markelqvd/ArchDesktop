@@ -2462,7 +2462,6 @@ GameObject:
   - component: {fileID: 7310231930692660506}
   - component: {fileID: 7816387447621802139}
   - component: {fileID: 3052345432095518940}
-  - component: {fileID: 2553194578540499213}
   - component: {fileID: 7226324645981377684}
   m_Layer: 5
   m_Name: UI_MainWindow
@@ -2552,19 +2551,6 @@ MonoBehaviour:
   upgradesButton: {fileID: 1261789744539035819}
   locationsButton: {fileID: 8194229065647424346}
   settingsButton: {fileID: 308956762141949439}
---- !u!114 &2553194578540499213
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4991258129459178818}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1b30213391892514eb17b5ae57a7880a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alwaysOnTopToggle: {fileID: 0}
 --- !u!114 &7226324645981377684
 MonoBehaviour:
   m_ObjectHideFlags: 0
