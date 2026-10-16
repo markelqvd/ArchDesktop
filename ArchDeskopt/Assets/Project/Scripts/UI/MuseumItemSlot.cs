@@ -12,12 +12,12 @@ namespace Archaeo.UI
         [SerializeField] TMP_Text nameText;
         [SerializeField] TMP_Text levelText;
 
-        public void Setup(ItemData item, int level)
+        public void Setup(ArtifactData artifact, int level)
         {
-            icon.sprite = item.sprite;
-            nameText.text = item.displayName;
+            icon.sprite = artifact.sprite;
+            nameText.text = artifact.displayName;
             levelText.text = $"Nv. {level}";
-            if (item.rarity != null) rarityFrame.color = item.rarity.color;
+            if (artifact.rarity != null) rarityFrame.color = artifact.rarity.color;
         }
     }
 }

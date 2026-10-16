@@ -18,10 +18,10 @@ namespace Archaeo.UI
 
         void Awake() => completeButton.onClick.AddListener(() => OnCompleted?.Invoke());
 
-        public void Show(ItemData item)
+        public void Show(ArtifactData artifact)
         {
-            titleText.text = item != null ? item.displayName : "???";
-            itemImage.sprite = item != null ? item.sprite : null;
+            titleText.text = artifact != null ? artifact.displayName : "???";
+            itemImage.sprite = artifact != null ? artifact.sprite : null;
             gameObject.SetActive(true);
         }
 

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Archaeo.Data
 {
     [CreateAssetMenu(menuName = "Archaeo/Item", fileName = "Item_")]
-    public class ItemData : ScriptableObject
+    public class ArtifactData : ScriptableObject
     {
         public string id;                 // único y estable (se usa en el guardado, NO cambiar)
         public string displayName;

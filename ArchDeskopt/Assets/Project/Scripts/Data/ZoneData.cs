@@ -11,6 +11,6 @@ namespace Archaeo.Data
         public Sprite background;
         public int unlockCost;
         public int activityPointsPerFind = 1000;     // PA necesarios por hallazgo (GDD: 1000 en zona 1)
-        public List<ItemData> items = new();
+        public List<ArtifactData> items = new();
     }
 }
