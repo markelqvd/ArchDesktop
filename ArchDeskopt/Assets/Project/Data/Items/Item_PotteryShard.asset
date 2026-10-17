@@ -19,7 +19,7 @@ MonoBehaviour:
   sprite: {fileID: 0}
   rarity: {fileID: 11400000, guid: 4800b115c0da7c744bd043ec8a33946b, type: 2}
   zone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
-  baseIncomePerMinute: 10
+  baseIncomePerMinute: 60
   levelIncomes: []
   baseLevelUpCost: 50
   costGrowth: 1.5

@@ -119,6 +119,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &207426042
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 207426044}
+  - component: {fileID: 207426043}
+  m_Layer: 0
+  m_Name: EconomyManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &207426043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207426042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c143af2aadbcc14dac8a5d39c3c101f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levelGrowth: 1.5
+--- !u!4 &207426044
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207426042}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 275.82513, y: 264.02478, z: 0.9085639}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &440058223
 GameObject:
   m_ObjectHideFlags: 0
@@ -151,7 +196,7 @@ MonoBehaviour:
   globalDetectionEnabled: 1
   countMouse: 1
   countKeyboard: 1
-  maxEventsPerSecond: 8
+  maxEventsPerSecond: 0
   pointsPerEvent: 1
 --- !u!4 &440058225
 Transform:
@@ -431,7 +476,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentZone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
-  thresholdOverride: 0
+  thresholdOverride: 40
   earlyFindChancePerPoint: 0.0003
 --- !u!4 &2142777334
 Transform:
@@ -458,3 +503,4 @@ SceneRoots:
   - {fileID: 440058225}
   - {fileID: 2142777334}
   - {fileID: 881957035}
+  - {fileID: 207426044}

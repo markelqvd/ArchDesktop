@@ -23,4 +23,4 @@ MonoBehaviour:
   levelIncomes: []
   baseLevelUpCost: 50
   costGrowth: 1.5
-  restorationType: 2
+  restorationType: 0

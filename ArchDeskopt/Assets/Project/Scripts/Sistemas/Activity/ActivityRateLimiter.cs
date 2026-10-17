@@ -12,7 +12,7 @@ namespace Archaeo.Activity
         /// now = hora del evento (ActivityEvent.Timestamp), en orden cronológico.
         public bool TryAccept(double now)
         {
-            if (MaxPerSecond <= 0) return false;
+            if (MaxPerSecond <= 0) return true;
 
             if (now - windowStart >= 1.0)
             {

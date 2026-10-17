@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
 using System.Runtime.InteropServices;
@@ -9,7 +10,7 @@ namespace Archaeo.Platform
 {
     /// Gestiona la ventana del juego en Windows: tamaño, sin bordes,
     /// siempre visible, arrastre, posición y escala recordadas, minimizar,
-    /// cerrar y crecimiento hacia arriba para los paneles.
+    /// cerrar, crecimiento hacia arriba para los paneles y forma redondeada.
     /// En el Editor no hace nada (para no modificar la ventana de Unity).
     /// Colócalo en un objeto de la escena Boot.
     public class WindowManager : MonoBehaviour
@@ -194,6 +195,35 @@ namespace Archaeo.Platform
             SavePosition();
         }
 
+        /// Recorta la ventana con una unión de rectángulos de esquinas redondeadas.
+        /// rects: en píxeles, relativos a la esquina superior izquierda de la ventana.
+        /// Lo que queda fuera de la forma desaparece y deja pasar los clics a lo de detrás.
+        /// Devuelve false si la ventana aún no está lista (hay que reintentarlo).
+        public bool SetShape(IReadOnlyList<RectInt> rects, int cornerRadiusPx)
+        {
+            if (hwnd == IntPtr.Zero || Native.IsIconic(hwnd)) return false;
+
+            if (rects == null || rects.Count == 0)
+            {
+                Native.SetWindowRgn(hwnd, IntPtr.Zero, true);   // sin recorte
+                return true;
+            }
+
+            int diameter = Mathf.Max(0, cornerRadiusPx * 2);
+            IntPtr combined = Native.CreateRectRgn(0, 0, 0, 0);
+
+            foreach (RectInt r in rects)
+            {
+                IntPtr part = Native.CreateRoundRectRgn(r.xMin, r.yMin, r.xMax + 1, r.yMax + 1, diameter, diameter);
+                Native.CombineRgn(combined, combined, part, Native.RGN_OR);
+                Native.DeleteObject(part);
+            }
+
+            // Tras esta llamada la región pertenece al sistema: no se borra
+            Native.SetWindowRgn(hwnd, combined, true);
+            return true;
+        }
+
         public void BeginDrag()
         {
             if (hwnd == IntPtr.Zero) return;
@@ -260,6 +290,7 @@ namespace Archaeo.Platform
 
             public const int SW_MINIMIZE = 6;
             public const int VK_LBUTTON = 0x01;
+            public const int RGN_OR = 2;
 
             public const int SM_CXSCREEN = 0;
             public const int SM_CYSCREEN = 1;
@@ -281,6 +312,12 @@ namespace Archaeo.Platform
             [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hWnd);
             [DllImport("user32.dll")] public static extern int GetSystemMetrics(int nIndex);
             [DllImport("user32.dll")] public static extern short GetAsyncKeyState(int vKey);
+            [DllImport("user32.dll")] public static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
+
+            [DllImport("gdi32.dll")] public static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
+            [DllImport("gdi32.dll")] public static extern IntPtr CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h);
+            [DllImport("gdi32.dll")] public static extern int CombineRgn(IntPtr dest, IntPtr src1, IntPtr src2, int mode);
+            [DllImport("gdi32.dll")] public static extern bool DeleteObject(IntPtr hObject);
         }
 #else
         // ───────────── Editor / otras plataformas: sin efecto ─────────────
@@ -298,6 +335,7 @@ namespace Archaeo.Platform
         public void Minimize() { }
         public void SetExtraHeight(int units) { }
         public void SetScale(float value) { }
+        public bool SetShape(IReadOnlyList<RectInt> rects, int cornerRadiusPx) => true;
 #endif
 
         public void Quit() => Application.Quit();
