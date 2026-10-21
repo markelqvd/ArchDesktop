@@ -4,10 +4,11 @@ using Archaeo.Platform;
 
 namespace Archaeo.UI
 {
-    /// Opciones de ventana en la UI: check de "siempre visible".
+    /// Opciones de ventana en el panel de Ajustes: "Siempre visible" y "Anclar a los bordes".
     public class WindowOptionsView : MonoBehaviour
     {
         [SerializeField] Toggle alwaysOnTopToggle;
+        [SerializeField] Toggle snapToggle;          // opcional
 
         void Start()
         {
@@ -17,6 +18,12 @@ namespace Archaeo.UI
             // Muestra el valor guardado sin disparar el evento
             alwaysOnTopToggle.SetIsOnWithoutNotify(wm.AlwaysOnTop);
             alwaysOnTopToggle.onValueChanged.AddListener(wm.SetAlwaysOnTop);
+
+            if (snapToggle != null)
+            {
+                snapToggle.SetIsOnWithoutNotify(wm.SnapToEdges);
+                snapToggle.onValueChanged.AddListener(wm.SetSnapToEdges);
+            }
         }
     }
 }
