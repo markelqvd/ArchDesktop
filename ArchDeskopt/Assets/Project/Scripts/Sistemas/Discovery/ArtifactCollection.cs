@@ -49,5 +49,15 @@ namespace Archaeo.Discovery
             entry.Restored = true;
             Changed?.Invoke();
         }
+
+        /// Sustituye toda la colección (al cargar una partida). Avisa una sola vez.
+        public void ReplaceAll(IEnumerable<Entry> newEntries)
+        {
+            entries.Clear();
+            foreach (var e in newEntries)
+                if (e != null && e.Artifact != null) entries[e.Artifact.id] = e;
+
+            Changed?.Invoke();
+        }
     }
 }

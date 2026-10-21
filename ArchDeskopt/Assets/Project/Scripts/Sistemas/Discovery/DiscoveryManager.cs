@@ -28,10 +28,16 @@ namespace Archaeo.Discovery
         public ArtifactCollection Collection { get; } = new ArtifactCollection();
         public ArtifactSpawner Spawner { get; } = new ArtifactSpawner();
 
+        /// Base de datos de artefactos (el guardado la usa para reconstruir la colección por id).
+        public ArtifactDatabase Database => database;
+
         readonly Queue<ArtifactData> pendingRestorations = new Queue<ArtifactData>();
 
         public int PendingCount => pendingRestorations.Count;
         public ArtifactData NextPending => pendingRestorations.Count > 0 ? pendingRestorations.Peek() : null;
+
+        /// Pendientes de restaurar, en orden.
+        public IEnumerable<ArtifactData> PendingList => pendingRestorations;
 
         /// (artefacto, ¿es nuevo?, nivel actual)
         public event Action<ArtifactData, bool, int> ArtifactFound;
@@ -118,6 +124,16 @@ namespace Archaeo.Discovery
 
             Collection.MarkRestored(artifact.id);
             RestorationCompleted?.Invoke(artifact);
+            PendingChanged?.Invoke();
+        }
+
+        /// Restaura la cola de pendientes (al cargar una partida).
+        public void RestorePending(IEnumerable<ArtifactData> pending)
+        {
+            pendingRestorations.Clear();
+            foreach (var a in pending)
+                if (a != null) pendingRestorations.Enqueue(a);
+
             PendingChanged?.Invoke();
         }
     }

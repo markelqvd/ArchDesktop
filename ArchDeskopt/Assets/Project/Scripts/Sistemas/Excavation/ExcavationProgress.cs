@@ -63,6 +63,14 @@ namespace Archaeo.Excavation
             Changed?.Invoke();
         }
 
+        /// Restaura un estado guardado (no dispara hallazgos).
+        public void SetState(float points, int totalFinds)
+        {
+            Points = Math.Max(0f, points);
+            TotalFinds = Math.Max(0, totalFinds);
+            Changed?.Invoke();
+        }
+
         bool RollEarlyFind(float points)
         {
             float p = EarlyFindChancePerPoint;

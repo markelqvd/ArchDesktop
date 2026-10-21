@@ -126,6 +126,22 @@ namespace Archaeo.Economy
             return true;
         }
 
+        /// Suma monedas (p. ej. ingresos con el juego cerrado).
+        public void AddCoins(double amount)
+        {
+            if (amount <= 0) return;
+            Coins += amount;
+            NotifyCoins();
+        }
+
+        /// Fija las monedas (al cargar una partida).
+        public void SetCoins(double value)
+        {
+            Coins = Math.Max(0, value);
+            lastShown = -1;   // fuerza el aviso aunque coincida el valor entero
+            NotifyCoins();
+        }
+
         void NotifyCoins()
         {
             long shown = (long)Math.Floor(Coins);
