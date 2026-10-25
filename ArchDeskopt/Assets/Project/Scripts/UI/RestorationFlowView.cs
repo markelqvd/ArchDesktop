@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Archaeo.Core;
 using Archaeo.Data;
@@ -8,7 +9,8 @@ using Archaeo.Discovery;
 namespace Archaeo.UI
 {
     /// Conecta los hallazgos con la restauración:
-    ///   hallazgo nuevo -> botón "Restaurar" -> panel de restauración -> museo.
+    ///   hallazgo nuevo -> minijuego (automático o con el botón "Restaurar") -> museo.
+    /// Si se acaba el tiempo, el hallazgo vuelve a quedar pendiente.
     /// Colócalo en el objeto Canvas de la escena Main.
     public class RestorationFlowView : MonoBehaviour
     {
@@ -19,17 +21,24 @@ namespace Archaeo.UI
         [Header("Panel de restauración")]
         [SerializeField] RestorationPanelView restorationPanel;
 
+        [Header("Inicio automático")]
+        [Tooltip("Si está marcado, un artefacto nuevo cuyo tipo ya tiene minijuego (Limpiar, Examinar) lo abre solo.")]
+        [FormerlySerializedAs("autoStartCleaning")]
+        [SerializeField] bool autoStartMinigames = true;
+
         [Header("Avisos (opcional)")]
         [SerializeField] NotificationToast toastPrefab;
         [SerializeField] Transform toastParent;
 
         DiscoveryManager discovery;
-        ArtifactData current;   // artefacto que se está restaurando ahora
+        ArtifactData current;            // artefacto que se está restaurando ahora
+        ArtifactData autoStartCandidate; // artefacto nuevo que debe empezar solo
 
         void Awake()
         {
             restoreButton.onClick.AddListener(StartRestoration);
             restorationPanel.OnCompleted += FinishRestoration;
+            restorationPanel.OnFailed += FailRestoration;
 
             restoreButton.gameObject.SetActive(false);
             restorationPanel.Hide();
@@ -54,8 +63,13 @@ namespace Archaeo.UI
 
         void OnArtifactFound(ArtifactData artifact, bool isNew, int level)
         {
-            // Los repetidos no interrumpen: solo se avisa de los nuevos
-            if (isNew) Toast("¡Se ha encontrado algo!");
+            // Los repetidos no interrumpen
+            if (!isNew) return;
+
+            if (autoStartMinigames && restorationPanel.HasMinigame(artifact.restorationType))
+                autoStartCandidate = artifact;   // se inicia en Refresh, cuando la cola ya está actualizada
+            else
+                Toast("¡Se ha encontrado algo!");
         }
 
         void Refresh()
@@ -69,6 +83,18 @@ namespace Archaeo.UI
                 restoreButtonText.text = pending > 1 ? $"¡Hallazgo! Restaurar ({pending})" : "¡Hallazgo! Restaurar";
 
             SyncState(pending);
+
+            // Inicio automático: solo si es el siguiente de la cola y no hay otra restauración en curso
+            if (autoStartCandidate != null)
+            {
+                ArtifactData candidate = autoStartCandidate;
+                autoStartCandidate = null;
+
+                if (current == null && discovery.NextPending == candidate)
+                    StartRestoration();
+                else
+                    Toast("¡Se ha encontrado algo!");
+            }
         }
 
         // Excavating <-> Discovery según haya o no hallazgos pendientes
@@ -88,7 +114,14 @@ namespace Archaeo.UI
             current = discovery.NextPending;
             if (current == null) return;
 
-            GameManager.Instance?.StateMachine.TryChangeState(GameState.Restoration);
+            var machine = GameManager.Instance != null ? GameManager.Instance.StateMachine : null;
+            if (machine != null)
+            {
+                // Las transiciones válidas son Excavating -> Discovery -> Restoration
+                if (machine.Current == GameState.Excavating) machine.TryChangeState(GameState.Discovery);
+                machine.TryChangeState(GameState.Restoration);
+            }
+
             restoreButton.gameObject.SetActive(false);
             restorationPanel.Show(current);
         }
@@ -106,6 +139,19 @@ namespace Archaeo.UI
             GameManager.Instance?.StateMachine.TryChangeState(GameState.Excavating);
             Toast($"{done.displayName} añadido al museo");
             Refresh();   // si quedan pendientes, vuelve a Discovery y reaparece el botón
+        }
+
+        // Se acabó el tiempo: el hallazgo sigue en la cola y se puede reintentar con el botón
+        void FailRestoration()
+        {
+            if (current == null) return;
+
+            current = null;
+            restorationPanel.Hide();
+
+            GameManager.Instance?.StateMachine.TryChangeState(GameState.Excavating);
+            Toast("Se acabó el tiempo. El hallazgo sigue pendiente.");
+            Refresh();
         }
 
         void Toast(string message)

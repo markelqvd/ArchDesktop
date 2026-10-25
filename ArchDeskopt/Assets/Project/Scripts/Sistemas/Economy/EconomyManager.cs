@@ -142,6 +142,10 @@ namespace Archaeo.Economy
             NotifyCoins();
         }
 
+        /// Atajo de pruebas: menú de los tres puntos del componente, en Play.
+        [ContextMenu("Añadir 1000 monedas (pruebas)")]
+        void DebugAddCoins() => AddCoins(1000);
+
         void NotifyCoins()
         {
             long shown = (long)Math.Floor(Coins);

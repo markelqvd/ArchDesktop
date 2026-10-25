@@ -9,7 +9,7 @@ namespace Archaeo.UI
 {
     /// Minijuego de restauración "Limpiar".
     /// Una capa de tierra cubre el artefacto; el jugador la quita manteniendo pulsado
-    /// el botón izquierdo y pasando el ratón por encima.
+    /// el botón izquierdo y pasando el ratón por encima, antes de que se acabe el tiempo.
     /// Va en un RawImage situado justo encima de la imagen del artefacto.
     [RequireComponent(typeof(RawImage))]
     public class CleanMinigameView : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
@@ -18,6 +18,13 @@ namespace Archaeo.UI
         const byte CleanAlpha = 40;    // por debajo de esta opacidad, el píxel cuenta como limpio
 
         [SerializeField] TMP_Text progressText;
+
+        [Header("Tiempo")]
+        [Tooltip("Segundos para completar la limpieza. 0 = sin límite.")]
+        [SerializeField] float timeLimitSeconds = 20f;
+        [SerializeField] TMP_Text timerText;
+        [Tooltip("Pausa tras agotarse el tiempo, antes de cerrar el panel.")]
+        [SerializeField] float timeoutPauseSeconds = 0.8f;
 
         [Header("Dificultad")]
         [Tooltip("Radio del pincel, en píxeles de la capa de tierra (128 de ancho).")]
@@ -28,6 +35,7 @@ namespace Archaeo.UI
         [SerializeField] float revealSeconds = 0.8f;
 
         public event Action Completed;
+        public event Action TimedOut;
 
         RawImage image;
         RectTransform rect;
@@ -38,6 +46,8 @@ namespace Archaeo.UI
         bool finished;
         bool hasLast;
         Vector2Int lastPoint;
+        float deadline;
+        int shownSeconds = -1;
 
         float Progress => cleaned / (float)(Size * Size);
 
@@ -52,7 +62,7 @@ namespace Archaeo.UI
             if (texture != null) Destroy(texture);
         }
 
-        /// Empieza una limpieza nueva con una capa de tierra distinta.
+        /// Empieza una limpieza nueva con una capa de tierra distinta y el tiempo completo.
         public void Begin()
         {
             if (texture == null)
@@ -66,6 +76,8 @@ namespace Archaeo.UI
                 image.texture = texture;
             }
 
+            StopAllCoroutines();   // por si quedaba una pausa de una partida anterior
+
             GenerateDirt();
             cleaned = 0;
             finished = false;
@@ -75,6 +87,15 @@ namespace Archaeo.UI
             texture.SetPixels32(pixels);
             texture.Apply(false);
             UpdateProgressText();
+
+            // Temporizador
+            deadline = Time.realtimeSinceStartup + timeLimitSeconds;
+            shownSeconds = -1;
+            if (timerText != null)
+            {
+                timerText.gameObject.SetActive(timeLimitSeconds > 0f);
+                UpdateTimerText(timeLimitSeconds);
+            }
         }
 
         // ───────────── Generación de la tierra ─────────────
@@ -180,9 +201,22 @@ namespace Archaeo.UI
             dirty = true;
         }
 
-        // ───────────── Progreso ─────────────
+        // ───────────── Progreso y tiempo ─────────────
         void Update()
         {
+            // Reloj real: el tiempo corre aunque los frames vayan lentos
+            if (!finished && timeLimitSeconds > 0f)
+            {
+                float remaining = deadline - Time.realtimeSinceStartup;
+                UpdateTimerText(remaining);
+
+                if (remaining <= 0f)
+                {
+                    TimeOut();
+                    return;
+                }
+            }
+
             if (!dirty) return;
             dirty = false;
 
@@ -207,10 +241,26 @@ namespace Archaeo.UI
             StartCoroutine(RevealThenComplete());
         }
 
+        void TimeOut()
+        {
+            finished = true;
+            hasLast = false;
+
+            if (timerText != null) timerText.text = "¡Tiempo!";
+            if (progressText != null) progressText.text = "Se acabó el tiempo";
+            StartCoroutine(PauseThenTimeOut());
+        }
+
         IEnumerator RevealThenComplete()
         {
             yield return new WaitForSecondsRealtime(revealSeconds);
             Completed?.Invoke();
+        }
+
+        IEnumerator PauseThenTimeOut()
+        {
+            yield return new WaitForSecondsRealtime(timeoutPauseSeconds);
+            TimedOut?.Invoke();
         }
 
         void UpdateProgressText()
@@ -219,6 +269,18 @@ namespace Archaeo.UI
             // Se muestra relativo al umbral para que llegue a 100 % justo al completar
             int percent = Mathf.Min(100, Mathf.RoundToInt(Progress / completeAt * 100f));
             progressText.text = $"Limpieza: {percent} %";
+        }
+
+        void UpdateTimerText(float remaining)
+        {
+            if (timerText == null) return;
+
+            int seconds = Mathf.CeilToInt(Mathf.Max(0f, remaining));
+            if (seconds == shownSeconds) return;   // solo se reescribe cuando cambia el segundo
+
+            shownSeconds = seconds;
+            timerText.text = $"Tiempo: {seconds} s";
+            timerText.color = seconds <= 5 ? new Color(1f, 0.4f, 0.35f) : Color.white;
         }
     }
 }

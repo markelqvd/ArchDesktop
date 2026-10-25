@@ -12,8 +12,17 @@ namespace Archaeo.Save
         public bool restored;
     }
 
+    /// Nivel de una mejora en el guardado.
+    [Serializable]
+    public class UpgradeSave
+    {
+        public string id;
+        public int level;
+    }
+
     /// Todo lo que se guarda de la partida. Se serializa a JSON.
-    /// Si cambia su estructura, sube "version" y añade una migración en SaveManager.
+    /// Si cambia su estructura de forma incompatible, sube "version" y añade una migración en SaveManager.
+    /// Los campos nuevos al final no rompen los guardados antiguos: quedan con su valor por defecto.
     [Serializable]
     public class SaveData
     {
@@ -27,5 +36,7 @@ namespace Archaeo.Save
 
         public List<ArtifactSave> artifacts = new List<ArtifactSave>();
         public List<string> pending = new List<string>();   // ids pendientes de restaurar, en orden
+
+        public List<UpgradeSave> upgrades = new List<UpgradeSave>();
     }
 }

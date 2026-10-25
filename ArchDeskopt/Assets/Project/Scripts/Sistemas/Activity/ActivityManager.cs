@@ -25,6 +25,9 @@ namespace Archaeo.Activity
         public ActivityRateLimiter RateLimiter { get; } = new ActivityRateLimiter();
 
         public bool Paused { get; set; }
+
+        /// Multiplicador de las mejoras (Potencia de excavación). Puntos por evento = base × multiplicador.
+        public float PointsMultiplier { get; set; } = 1f;
         public bool GlobalDetectionEnabled { get => globalDetectionEnabled; set => globalDetectionEnabled = value; }
         public bool CountMouse { get => countMouse; set => countMouse = value; }
         public bool CountKeyboard { get => countKeyboard; set => countKeyboard = value; }
@@ -52,7 +55,7 @@ namespace Archaeo.Activity
 
             // Se aplican cada frame para que los cambios del Inspector surtan efecto en Play
             RateLimiter.MaxPerSecond = maxEventsPerSecond;
-            Counter.PointsPerEvent = pointsPerEvent;
+            Counter.PointsPerEvent = pointsPerEvent * PointsMultiplier;
             RefreshPoller();
 
             while (queue.TryDequeue(out ActivityEvent e))

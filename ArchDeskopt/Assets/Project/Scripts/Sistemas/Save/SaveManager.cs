@@ -7,6 +7,7 @@ using Archaeo.Data;
 using Archaeo.Discovery;
 using Archaeo.Economy;
 using Archaeo.Excavation;
+using Archaeo.Upgrades;
 
 namespace Archaeo.Save
 {
@@ -17,6 +18,10 @@ namespace Archaeo.Save
 
         [Header("Guardado")]
         [SerializeField] float autosaveSeconds = 30f;
+
+        [Header("Pruebas")]
+        [Tooltip("Ignora el guardado al arrancar y no guarda nada: cada ejecución empieza una partida nueva y el guardado real no se toca. Desmárcalo para jugar de verdad.")]
+        [SerializeField] bool freshStartNoSave = false;
 
         [Header("Ingresos con el juego cerrado")]
         [Tooltip("Horas máximas que cuentan mientras el juego estuvo cerrado. 0 = desactivado.")]
@@ -30,6 +35,7 @@ namespace Archaeo.Save
         DiscoveryManager discovery;
         EconomyManager economy;
         ExcavationSystem excavation;
+        UpgradeManager upgradeManager;
 
         bool loaded;            // hasta que no se carga no se guarda, para no pisar el guardado con datos vacíos
         bool saveRequested;
@@ -56,9 +62,13 @@ namespace Archaeo.Save
             discovery = DiscoveryManager.Instance;
             economy = EconomyManager.Instance;
             excavation = ExcavationSystem.Instance;
+            upgradeManager = UpgradeManager.Instance;
 
             Debug.Log($"[Guardado] Archivo: {SavePath}");
-            Load();
+            if (freshStartNoSave)
+                Debug.LogWarning("[Guardado] MODO PRUEBAS: partida nueva, no se carga ni se guarda nada.");
+            else
+                Load();
             loaded = true;
 
             if (discovery != null)
@@ -93,7 +103,7 @@ namespace Archaeo.Save
         // ───────────── Guardar ─────────────
         public void Save()
         {
-            if (!loaded) return;
+            if (!loaded || freshStartNoSave) return;
 
             try
             {
@@ -145,6 +155,12 @@ namespace Archaeo.Save
 
                 foreach (var a in discovery.PendingList)
                     data.pending.Add(a.id);
+            }
+
+            if (upgradeManager != null)
+            {
+                foreach (var pair in upgradeManager.Levels)
+                    data.upgrades.Add(new UpgradeSave { id = pair.Key, level = pair.Value });
             }
 
             return data;
@@ -232,6 +248,13 @@ namespace Archaeo.Save
                     if (!entry.Restored && !pending.Contains(entry.Artifact)) pending.Add(entry.Artifact);
 
                 discovery.RestorePending(pending);
+            }
+
+            if (upgradeManager != null)
+            {
+                upgradeManager.ClearLevels();
+                foreach (var s in data.upgrades) upgradeManager.SetLevel(s.id, s.level);
+                upgradeManager.ApplyLoaded();
             }
 
             if (economy != null)
