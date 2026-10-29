@@ -1578,6 +1578,63 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2576257388180213535
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7370177370760907878}
+  - component: {fileID: 6463369984926359895}
+  m_Layer: 5
+  m_Name: Dust
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7370177370760907878
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2576257388180213535}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1786157612461829105}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6463369984926359895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2576257388180213535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d4b138ef2cda6b4eb1053a47c3738bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  peakSeconds: 0.8
+  stepsPerSecond: 14
+  puffCount: 200
+  riseSpeed: 8
+  tones:
+  - {r: 0.97, g: 0.91, b: 0.78, a: 1}
+  - {r: 0.9, g: 0.8, b: 0.62, a: 1}
+  - {r: 0.82, g: 0.7, b: 0.5, a: 1}
+  hazeColor: {r: 0.93, g: 0.85, b: 0.68, a: 1}
 --- !u!1 &2678593126867213173
 GameObject:
   m_ObjectHideFlags: 0
@@ -2307,7 +2364,6 @@ MonoBehaviour:
   area: {fileID: 0}
   pickSprite: {fileID: 21300000, guid: ea1e3114db252fd4e886fff695d8ce01, type: 3}
   brushSprite: {fileID: 21300000, guid: 4a0cb24e90fd0e445b002d0b85880e5d, type: 3}
-  pixelScale: 2
   minActions: 12
   maxActions: 18
   maxAtOnce: 2
@@ -2838,6 +2894,7 @@ GameObject:
   - component: {fileID: 7226324645981377684}
   - component: {fileID: 3859839330906361887}
   - component: {fileID: 5242778731518949741}
+  - component: {fileID: 6853108556020853267}
   m_Layer: 5
   m_Name: UI_MainWindow
   m_TagString: Untagged
@@ -2859,6 +2916,7 @@ RectTransform:
   m_Children:
   - {fileID: 5170486408328253530}
   - {fileID: 6815065980271989025}
+  - {fileID: 7370177370760907878}
   - {fileID: 2012243856845033144}
   - {fileID: 6432767306486727487}
   - {fileID: 8757858023630369966}
@@ -2984,6 +3042,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinsText: {fileID: 2226885308396787002}
   incomeText: {fileID: 8848436134809135440}
+--- !u!114 &6853108556020853267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4991258129459178818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d131e908e14a4f43949266f4b9525f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapImage: {fileID: 7816387447621802139}
+  layers:
+  - name: Fase1
+    sprite: {fileID: 21300000, guid: d16ebbf24c7d440408f97556b1b899d1, type: 3}
+    minRestoredObjects: 0
+    onlyInThisLayer: []
+  - name: Fase2
+    sprite: {fileID: 2336415167086253922, guid: 8b99a041cffd6654793727b00a80108b, type: 3}
+    minRestoredObjects: 2
+    onlyInThisLayer: []
+  - name: Fase3
+    sprite: {fileID: 21300000, guid: bcb284c2908636f48acb468d4055fd2d, type: 3}
+    minRestoredObjects: 4
+    onlyInThisLayer: []
+  dust: {fileID: 0}
+  countRestoredOnly: 1
 --- !u!1 &5474573620201391584
 GameObject:
   m_ObjectHideFlags: 0

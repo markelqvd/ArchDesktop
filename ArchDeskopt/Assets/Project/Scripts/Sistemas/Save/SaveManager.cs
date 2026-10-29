@@ -45,6 +45,9 @@ namespace Archaeo.Save
         /// (monedas ganadas, segundos de ausencia)
         public event Action<double, double> OfflineIncomeEarned;
 
+        /// Se dispara justo después de cargar una partida guardada.
+        public event Action Loaded;
+
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -177,6 +180,7 @@ namespace Archaeo.Save
             }
 
             Apply(data);
+            Loaded?.Invoke();
             Debug.Log($"[Guardado] Partida cargada: {data.artifacts.Count} artefactos, {data.coins:0} monedas.");
             return true;
         }

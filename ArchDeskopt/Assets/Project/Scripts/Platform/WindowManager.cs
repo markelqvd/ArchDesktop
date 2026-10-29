@@ -8,16 +8,24 @@ using System.Runtime.InteropServices;
 
 namespace Archaeo.Platform
 {
-    /// Un rectángulo de la forma de la ventana, con su propio radio de esquina (en píxeles).
+    /// Una pieza de la forma de la ventana, en píxeles relativos a la esquina superior izquierda de la ventana.
+    /// Por defecto es un rectángulo con esquinas redondeadas (Radius). Si trae Mask, la pieza toma la
+    /// silueta de esa lista de rectángulos (relativos a Rect), por ejemplo la transparencia de un sprite.
     public readonly struct WindowShapePart
     {
         public readonly RectInt Rect;
         public readonly int Radius;
+        public readonly IReadOnlyList<RectInt> Mask;   // null = rectángulo redondeado
+        public readonly int MaskKey;                   // identifica la máscara, para saber si cambió
 
-        public WindowShapePart(RectInt rect, int radius)
+        public WindowShapePart(RectInt rect, int radius) : this(rect, radius, null, 0) { }
+
+        public WindowShapePart(RectInt rect, int radius, IReadOnlyList<RectInt> mask, int maskKey)
         {
             Rect = rect;
             Radius = radius;
+            Mask = mask;
+            MaskKey = maskKey;
         }
     }
 
@@ -38,8 +46,14 @@ namespace Archaeo.Platform
         [Header("Ventana principal (unidades de referencia)")]
         [SerializeField] int width = 600;
         [SerializeField] int height = 400;
+
+        [Tooltip("Unidades de la UI que mide cada píxel del arte. Es el tamaño del mapa: su ancho en unidades (600) entre su ancho en píxeles (249). Si cambia el mapa, cámbialo aquí.")]
+        [SerializeField] float unitsPerArtPixel = 600f / 249f;
         [SerializeField] bool borderless = true;
         [SerializeField] bool defaultAlwaysOnTop = true;
+
+        [Tooltip("La primera vez que se abre el juego, la ventana principal ocupa esta fracción de la altura de la pantalla (se redondea a múltiplos de 25 % para que los píxeles del arte midan siempre un número entero). 0 = 100 %.")]
+        [SerializeField, Range(0f, 0.6f)] float firstRunHeightFraction = 0.25f;
 
         [Header("Zona de paneles")]
         [Tooltip("Alto de la zona de paneles. DEBE coincidir con la altura de PanelArea y con Panel Height de PanelHostView.")]
@@ -59,14 +73,20 @@ namespace Archaeo.Platform
         const string KeyY = "window_y";
         const string KeyTop = "window_always_on_top";
         const string KeyScale = "window_scale";
+        const string KeyPixelSize = "window_pixel_size";
         const string KeySnap = "window_snap";
 
-        public const float MinScale = 0.5f;
-        public const float ScaleStep = 0.25f;
+        /// Unidades de la UI por píxel del arte (ver PixelArt).
+        public float UnitsPerArtPixel => unitsPerArtPixel;
 
         public bool AlwaysOnTop { get; private set; }
-        public float Scale { get; private set; } = 1f;
+        /// Píxeles de pantalla que mide cada píxel del arte (1, 2, 3...). Siempre un número entero.
+        public int PixelSize { get; private set; } = 2;
+        /// Escala de la UI que resulta de PixelSize (la usa el Canvas).
+        public float Scale { get; private set; } = 0.83f;
         public bool SnapToEdges { get; private set; } = true;
+
+        bool hasSavedScale;   // false la primera vez que se abre el juego
 
         /// Se dispara cuando cambia la escala (la usa el Canvas para escalar la UI).
         public event Action<float> ScaleChanged;
@@ -78,7 +98,9 @@ namespace Archaeo.Platform
             DontDestroyOnLoad(gameObject);
 
             AlwaysOnTop = PlayerPrefs.GetInt(KeyTop, defaultAlwaysOnTop ? 1 : 0) == 1;
-            Scale = Mathf.Clamp(PlayerPrefs.GetFloat(KeyScale, 1f), MinScale, 2f);
+            hasSavedScale = PlayerPrefs.HasKey(KeyPixelSize);
+            PixelSize = Mathf.Max(1, PlayerPrefs.GetInt(KeyPixelSize, 2));
+            Scale = PixelSize / unitsPerArtPixel;
             SnapToEdges = PlayerPrefs.GetInt(KeySnap, 1) == 1;
         }
 
@@ -88,28 +110,43 @@ namespace Archaeo.Platform
             PlayerPrefs.SetInt(KeySnap, value ? 1 : 0);
         }
 
+        /// Borra el tamaño, la posición y las opciones de ventana guardados (menú de los tres puntos del componente).
+        [ContextMenu("Restablecer tamaño y posición guardados")]
+        void ResetSavedWindow()
+        {
+            PlayerPrefs.DeleteKey(KeyX);
+            PlayerPrefs.DeleteKey(KeyY);
+            PlayerPrefs.DeleteKey(KeyScale);
+            PlayerPrefs.DeleteKey(KeyPixelSize);
+            PlayerPrefs.DeleteKey(KeyTop);
+            PlayerPrefs.DeleteKey(KeySnap);
+            PlayerPrefs.Save();
+            Debug.Log("[Ventana] Tamaño y posición guardados borrados: la próxima vez se usarán los valores por defecto.");
+        }
+
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
         // ───────────── Windows ─────────────
         IntPtr hwnd = IntPtr.Zero;
         bool dragging;
         int dragCursorX, dragCursorY, dragWinX, dragWinY;
         Coroutine snapRoutine;
+        bool uiShapeApplied;   // true cuando la interfaz ya ha aplicado su forma
 
         int WidthPx => Mathf.RoundToInt(width * Scale);
         int HeightPx => Mathf.RoundToInt(height * Scale);                   // ventana principal
         int PanelPx => Mathf.RoundToInt(reservedPanelHeight * Scale);       // zona de paneles
         int TotalHeightPx => HeightPx + PanelPx;                            // alto real de la ventana de Windows
 
-        /// Mayor escala con la que cabe la ventana (con un panel abierto) en la pantalla principal.
-        /// Nunca baja de 1: el 100 % siempre está permitido.
-        public float MaxScale
+        /// Mayor tamaño de píxel con el que cabe la ventana (con un panel abierto) en la pantalla principal.
+        /// Nunca baja de 2: ×2 siempre está permitido.
+        public int MaxPixelSize
         {
             get
             {
                 int screenH = Native.GetSystemMetrics(Native.SM_CYSCREEN);
-                float fit = (screenH - 80f) / (height + reservedPanelHeight);
-                float stepped = Mathf.Floor(fit / ScaleStep) * ScaleStep;
-                return Mathf.Clamp(stepped, 1f, 2f);
+                float totalUnits = height + reservedPanelHeight;
+                int fit = Mathf.FloorToInt((screenH - 80f) * unitsPerArtPixel / totalUnits);
+                return Mathf.Max(2, fit);
             }
         }
 
@@ -125,8 +162,17 @@ namespace Archaeo.Platform
             hwnd = Native.GetActiveWindow();
             if (hwnd == IntPtr.Zero) yield break;
 
-            // Si la escala guardada ya no cabe (otro monitor), reducirla
-            Scale = Mathf.Min(Scale, MaxScale);
+            // Primera vez: tamaño inicial según la pantalla (un entero: cada píxel del arte mide N píxeles de pantalla)
+            if (!hasSavedScale && firstRunHeightFraction > 0f)
+            {
+                int screenH = Native.GetSystemMetrics(Native.SM_CYSCREEN);
+                float ideal = screenH * firstRunHeightFraction * unitsPerArtPixel / height;
+                PixelSize = Mathf.RoundToInt(ideal);
+            }
+
+            // Dentro de los límites de esta pantalla (por si cambió de monitor)
+            PixelSize = Mathf.Clamp(PixelSize, 1, MaxPixelSize);
+            Scale = PixelSize / unitsPerArtPixel;
             ScaleChanged?.Invoke(Scale);
 
             // 2. Quitar bordes y barra de título
@@ -143,9 +189,25 @@ namespace Archaeo.Platform
             Native.SetWindowPos(hwnd, AlwaysOnTop ? Native.HWND_TOPMOST : Native.HWND_NOTOPMOST,
                 pos.x, pos.y - PanelPx, WidthPx, TotalHeightPx, Native.SWP_FRAMECHANGED | Native.SWP_SHOWWINDOW);
 
-            // 4. Forma inicial: solo la ventana principal, para no ver la zona de paneles vacía al arrancar
-            SetShape(new[] { new RectInt(0, PanelPx, WidthPx, HeightPx) },
-                Mathf.RoundToInt(initialCornerRadius * Scale));
+            // 4. La ventana queda invisible (forma mínima) hasta que la interfaz aplique la suya,
+            //    para que no se vea ningún color de fondo mientras carga.
+            ApplyShape(new[] { new WindowShapePart(new RectInt(0, 0, 1, 1), 0) });
+            StartCoroutine(FallbackShape());
+        }
+
+        /// Si la interfaz no aplica ninguna forma en unos segundos, se usa un rectángulo redondeado
+        /// para que la ventana no se quede invisible.
+        IEnumerator FallbackShape()
+        {
+            yield return new WaitForSecondsRealtime(5f);
+            if (uiShapeApplied) yield break;
+
+            Debug.LogWarning("[Ventana] La interfaz no aplicó ninguna forma: se usa la forma redondeada por defecto.");
+            ApplyShape(new[]
+            {
+                new WindowShapePart(new RectInt(0, PanelPx, WidthPx, HeightPx),
+                    Mathf.RoundToInt(initialCornerRadius * Scale))
+            });
         }
 
         /// Devuelve la esquina superior izquierda de la ventana PRINCIPAL.
@@ -220,15 +282,16 @@ namespace Archaeo.Platform
             SavePosition();
         }
 
-        /// Cambia la escala de la ventana y de la UI, manteniendo la proporción.
-        public void SetScale(float value)
+        /// Cambia el tamaño de la ventana y de la UI: cada píxel del arte pasa a medir "value" píxeles de pantalla.
+        public void SetPixelSize(int value)
         {
-            value = Mathf.Clamp(value, MinScale, MaxScale);
-            if (Mathf.Approximately(value, Scale)) return;
+            value = Mathf.Clamp(value, 1, MaxPixelSize);
+            if (value == PixelSize) return;
 
             int oldPanelPx = PanelPx;
-            Scale = value;
-            PlayerPrefs.SetFloat(KeyScale, Scale);
+            PixelSize = value;
+            Scale = PixelSize / unitsPerArtPixel;
+            PlayerPrefs.SetInt(KeyPixelSize, PixelSize);
             ScaleChanged?.Invoke(Scale);
 
             if (hwnd == IntPtr.Zero || Native.IsIconic(hwnd)) return;
@@ -252,12 +315,17 @@ namespace Archaeo.Platform
             SavePosition();
         }
 
-        /// Recorta la ventana con una unión de rectángulos de esquinas redondeadas,
-        /// cada uno con su propio radio. Los rectángulos van en píxeles, relativos a la
-        /// esquina superior izquierda de la ventana.
+        /// Recorta la ventana con la unión de las piezas indicadas (rectángulos redondeados o siluetas de imagen).
         /// Lo que queda fuera de la forma desaparece y deja pasar los clics a lo de detrás.
         /// Devuelve false si la ventana aún no está lista (hay que reintentarlo).
         public bool SetShape(IReadOnlyList<WindowShapePart> parts)
+        {
+            if (!ApplyShape(parts)) return false;
+            uiShapeApplied = true;
+            return true;
+        }
+
+        bool ApplyShape(IReadOnlyList<WindowShapePart> parts)
         {
             if (hwnd == IntPtr.Zero || Native.IsIconic(hwnd)) return false;
 
@@ -271,16 +339,71 @@ namespace Archaeo.Platform
 
             foreach (WindowShapePart p in parts)
             {
-                int diameter = Mathf.Max(0, p.Radius * 2);
-                RectInt r = p.Rect;
-                IntPtr part = Native.CreateRoundRectRgn(r.xMin, r.yMin, r.xMax + 1, r.yMax + 1, diameter, diameter);
-                Native.CombineRgn(combined, combined, part, Native.RGN_OR);
-                Native.DeleteObject(part);
+                IntPtr region = (p.Mask != null && p.Mask.Count > 0)
+                    ? RegionFromMask(p.Mask, p.Rect.xMin, p.Rect.yMin)
+                    : RoundedRegion(p);
+
+                if (region == IntPtr.Zero) continue;
+                Native.CombineRgn(combined, combined, region, Native.RGN_OR);
+                Native.DeleteObject(region);
             }
 
             // Tras esta llamada la región pertenece al sistema: no se borra
             Native.SetWindowRgn(hwnd, combined, true);
             return true;
+        }
+
+        static IntPtr RoundedRegion(WindowShapePart p)
+        {
+            int diameter = Mathf.Max(0, p.Radius * 2);
+            RectInt r = p.Rect;
+            return Native.CreateRoundRectRgn(r.xMin, r.yMin, r.xMax + 1, r.yMax + 1, diameter, diameter);
+        }
+
+        /// Crea una región a partir de una lista de rectángulos (ordenados de arriba abajo y de izquierda a derecha).
+        static IntPtr RegionFromMask(IReadOnlyList<RectInt> rects, int offsetX, int offsetY)
+        {
+            int count = rects.Count;
+            int size = 32 + count * 16;               // cabecera RGNDATAHEADER + un RECT por rectángulo
+            IntPtr buffer = Marshal.AllocHGlobal(size);
+
+            try
+            {
+                int minX = int.MaxValue, minY = int.MaxValue, maxX = int.MinValue, maxY = int.MinValue;
+
+                for (int i = 0; i < count; i++)
+                {
+                    RectInt r = rects[i];
+                    int left = r.xMin + offsetX, top = r.yMin + offsetY;
+                    int right = r.xMax + offsetX, bottom = r.yMax + offsetY;
+
+                    int at = 32 + i * 16;
+                    Marshal.WriteInt32(buffer, at, left);
+                    Marshal.WriteInt32(buffer, at + 4, top);
+                    Marshal.WriteInt32(buffer, at + 8, right);
+                    Marshal.WriteInt32(buffer, at + 12, bottom);
+
+                    if (left < minX) minX = left;
+                    if (top < minY) minY = top;
+                    if (right > maxX) maxX = right;
+                    if (bottom > maxY) maxY = bottom;
+                }
+
+                Marshal.WriteInt32(buffer, 0, 32);          // dwSize
+                Marshal.WriteInt32(buffer, 4, 1);           // iType = RDH_RECTANGLES
+                Marshal.WriteInt32(buffer, 8, count);       // nCount
+                Marshal.WriteInt32(buffer, 12, count * 16); // nRgnSize
+                Marshal.WriteInt32(buffer, 16, minX);       // rcBound
+                Marshal.WriteInt32(buffer, 20, minY);
+                Marshal.WriteInt32(buffer, 24, maxX);
+                Marshal.WriteInt32(buffer, 28, maxY);
+
+                return Native.ExtCreateRegion(IntPtr.Zero, (uint)size, buffer);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
         }
 
         /// Atajo: todos los rectángulos con el mismo radio.
@@ -462,11 +585,12 @@ namespace Archaeo.Platform
             [DllImport("gdi32.dll")] public static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
             [DllImport("gdi32.dll")] public static extern IntPtr CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h);
             [DllImport("gdi32.dll")] public static extern int CombineRgn(IntPtr dest, IntPtr src1, IntPtr src2, int mode);
+            [DllImport("gdi32.dll")] public static extern IntPtr ExtCreateRegion(IntPtr lpx, uint nCount, IntPtr lpData);
             [DllImport("gdi32.dll")] public static extern bool DeleteObject(IntPtr hObject);
         }
 #else
         // ───────────── Editor / otras plataformas: sin efecto ─────────────
-        public float MaxScale => 1f;
+        public int MaxPixelSize => 2;
 
         IEnumerator Start()
         {
@@ -479,7 +603,7 @@ namespace Archaeo.Platform
         public void SetAlwaysOnTop(bool value) { AlwaysOnTop = value; }
         public void Minimize() { }
         public void SetExtraHeight(int units) { }
-        public void SetScale(float value) { }
+        public void SetPixelSize(int value) { }
         public bool SetShape(IReadOnlyList<RectInt> rects, int cornerRadiusPx) => true;
         public bool SetShape(IReadOnlyList<WindowShapePart> parts) => true;
 #endif

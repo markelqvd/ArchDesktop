@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Archaeo.Activity;
+using Archaeo.Platform;
 
 namespace Archaeo.UI
 {
@@ -16,8 +17,8 @@ namespace Archaeo.UI
         [Header("Sprites")]
         [SerializeField] Sprite pickSprite;
         [SerializeField] Sprite brushSprite;
-        [Tooltip("Cada píxel del sprite se dibuja de este tamaño (unidades de la UI).")]
-        [SerializeField] float pixelScale = 6f;
+        /// Cada píxel del arte se dibuja con el tamaño del píxel del mapa (se define en WindowManager).
+        float pixelScale => PixelArt.UnitsPerPixel;
 
         [Header("Frecuencia")]
         [Tooltip("La animación sale cada X acciones, con X al azar entre estos dos valores.")]
@@ -234,7 +235,7 @@ namespace Archaeo.UI
                 rt.anchorMin = rt.anchorMax = Vector2.zero;
                 rt.pivot = new Vector2(0.5f, 0.5f);
 
-                float s = pixelScale * Random.Range(0.6f, 1f);
+                float s = pixelScale;   // una partícula = un píxel del arte
                 rt.sizeDelta = new Vector2(s, s);
                 rt.anchoredPosition = origin;
 
