@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23bc018727890c439dc4d5941a9f79d, type: 3}
+  m_Name: SFX_UI_Click
+  m_EditorClassIdentifier: Assembly-CSharp::Archaeo.Sound.SoundEvent
+  eventId: UI_Click
+  description: "Clic en cualquier bot\xF3n de la interfaz."
+  bus: 2
+  clips:
+  - {fileID: 8300000, guid: 251dfa2422b1b26478d7189f8ad1cdad, type: 3}
+  playMode: 0
+  volumeDb: 0
+  volumeVariationDb: 0
+  pitchSemitones: 0
+  pitchVariationSemitones: 0
+  pan: 0
+  loop: 0
+  fadeInSeconds: 0
+  fadeOutSeconds: 0
+  delaySeconds: 0
+  cooldownSeconds: 0.03
+  maxInstances: 4
+  priority: 128
+  playInBackground: 1
+  duckMusicDb: 0
+  duckSeconds: 0

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Archaeo.Sound;
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
 using System.Runtime.InteropServices;
 #endif
@@ -101,6 +102,9 @@ namespace Archaeo.Platform
             hasSavedScale = PlayerPrefs.HasKey(KeyPixelSize);
             PixelSize = Mathf.Max(1, PlayerPrefs.GetInt(KeyPixelSize, 2));
             Scale = PixelSize / unitsPerArtPixel;
+#if UNITY_EDITOR
+            Scale = 1f;   // en el Editor la vista Game es de 600x720: la UI se ve a escala 1
+#endif
             SnapToEdges = PlayerPrefs.GetInt(KeySnap, 1) == 1;
         }
 
@@ -285,7 +289,9 @@ namespace Archaeo.Platform
         /// Cambia el tamaño de la ventana y de la UI: cada píxel del arte pasa a medir "value" píxeles de pantalla.
         public void SetPixelSize(int value)
         {
-            value = Mathf.Clamp(value, 1, MaxPixelSize);
+            int max = MaxPixelSize;
+            if (value > max) Debug.Log($"[Ventana] ×{value} no cabe en esta pantalla (máximo ×{max}).");
+            value = Mathf.Clamp(value, 1, max);
             if (value == PixelSize) return;
 
             int oldPanelPx = PanelPx;
@@ -293,6 +299,7 @@ namespace Archaeo.Platform
             Scale = PixelSize / unitsPerArtPixel;
             PlayerPrefs.SetInt(KeyPixelSize, PixelSize);
             ScaleChanged?.Invoke(Scale);
+            Debug.Log($"[Ventana] Tamaño de píxel ×{PixelSize} (máximo ×{max}): ventana {WidthPx}x{TotalHeightPx} px.");
 
             if (hwnd == IntPtr.Zero || Native.IsIconic(hwnd)) return;
 
@@ -471,6 +478,7 @@ namespace Archaeo.Platform
             if (!snapX && !snapY) return false;
             if (targetLeft == left && targetTop == top) return false;
 
+            GameAudio.Play(AudioIds.Window_Snap);
             snapRoutine = StartCoroutine(AnimateTo(targetLeft, targetTop - PanelPx));
             return true;
         }
@@ -521,7 +529,9 @@ namespace Archaeo.Platform
 
         public void Minimize()
         {
-            if (hwnd != IntPtr.Zero) Native.ShowWindow(hwnd, Native.SW_MINIMIZE);
+            if (hwnd == IntPtr.Zero) return;
+            GameAudio.Play(AudioIds.Window_Minimize);
+            Native.ShowWindow(hwnd, Native.SW_MINIMIZE);
         }
 
         void OnApplicationQuit() => SavePosition();
@@ -590,7 +600,7 @@ namespace Archaeo.Platform
         }
 #else
         // ───────────── Editor / otras plataformas: sin efecto ─────────────
-        public int MaxPixelSize => 2;
+        public int MaxPixelSize => 3;
 
         IEnumerator Start()
         {
@@ -603,7 +613,11 @@ namespace Archaeo.Platform
         public void SetAlwaysOnTop(bool value) { AlwaysOnTop = value; }
         public void Minimize() { }
         public void SetExtraHeight(int units) { }
-        public void SetPixelSize(int value) { }
+        public void SetPixelSize(int value)
+        {
+            PixelSize = Mathf.Clamp(value, 1, MaxPixelSize);
+            Debug.Log($"[Ventana] Tamaño elegido: ×{PixelSize}. En el Editor la ventana no cambia de tamaño; compruébalo en el build.");
+        }
         public bool SetShape(IReadOnlyList<RectInt> rects, int cornerRadiusPx) => true;
         public bool SetShape(IReadOnlyList<WindowShapePart> parts) => true;
 #endif

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23bc018727890c439dc4d5941a9f79d, type: 3}
+  m_Name: SFX_Effect_BrushSweep
+  m_EditorClassIdentifier: Assembly-CSharp::Archaeo.Sound.SoundEvent
+  eventId: Effect_BrushSweep
+  description: "Un barrido de la animaci\xF3n de la brocha sobre el mapa."
+  bus: 1
+  clips: []
+  playMode: 0
+  volumeDb: -10
+  volumeVariationDb: 0
+  pitchSemitones: 0
+  pitchVariationSemitones: 0
+  pan: 0
+  loop: 0
+  fadeInSeconds: 0
+  fadeOutSeconds: 0
+  delaySeconds: 0
+  cooldownSeconds: 0.1
+  maxInstances: 2
+  priority: 200
+  playInBackground: 0
+  duckMusicDb: 0
+  duckSeconds: 0

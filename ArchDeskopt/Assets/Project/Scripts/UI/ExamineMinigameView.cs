@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Archaeo.Sound;
 
 namespace Archaeo.UI
 {
@@ -60,6 +61,7 @@ namespace Archaeo.UI
         {
             StopAllCoroutines();
             ClearPoints();
+            GameAudio.Play(AudioIds.Examine_Start);
 
             finished = false;
             found = 0;
@@ -152,6 +154,7 @@ namespace Archaeo.UI
 
             points.Remove(point);
             found++;
+            GameAudio.Play(AudioIds.Examine_PointHit);
             StartCoroutine(PopAndDestroy(point.Rect));
             UpdateProgressText();
 
@@ -183,6 +186,7 @@ namespace Archaeo.UI
         void Finish()
         {
             finished = true;
+            GameAudio.Play(AudioIds.Examine_Complete);
             if (progressText != null) progressText.text = "¡Examinado!";
             StartCoroutine(PauseThen(finishPauseSeconds, () => Completed?.Invoke()));
         }
@@ -190,6 +194,7 @@ namespace Archaeo.UI
         void TimeOut()
         {
             finished = true;
+            GameAudio.Play(AudioIds.Examine_Fail);
             if (timerText != null) timerText.text = "¡Tiempo!";
             if (progressText != null) progressText.text = "Se acabó el tiempo";
             StartCoroutine(PauseThen(timeoutPauseSeconds, () => TimedOut?.Invoke()));
@@ -232,6 +237,7 @@ namespace Archaeo.UI
             if (seconds == shownSeconds) return;   // solo se reescribe cuando cambia el segundo
 
             shownSeconds = seconds;
+            if (seconds > 0 && seconds <= 5) GameAudio.Play(AudioIds.Minigame_TimerWarning);
             timerText.text = $"Tiempo: {seconds} s";
             timerText.color = seconds <= 5 ? new Color(1f, 0.4f, 0.35f) : Color.white;
         }

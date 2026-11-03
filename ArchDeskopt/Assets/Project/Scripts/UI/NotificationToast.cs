@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using Archaeo.Sound;
 
 namespace Archaeo.UI
 {
@@ -16,6 +17,7 @@ namespace Archaeo.UI
 
         public void Show(string message)
         {
+            GameAudio.Play(AudioIds.UI_Toast);
             group = GetComponent<CanvasGroup>();
             messageText.text = message;
             StartCoroutine(Run());

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Archaeo.Sound;
 
 namespace Archaeo.UI
 {
@@ -11,6 +12,7 @@ namespace Archaeo.UI
         {
             var host = GetComponentInParent<PanelHostView>(true);
             GetComponent<Button>().onClick.AddListener(() => host?.Close());
+            UISoundIgnore.Mark(gameObject);   // ya suena el cierre del panel
         }
     }
 }

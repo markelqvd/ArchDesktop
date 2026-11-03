@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Archaeo.Activity;
 using Archaeo.Platform;
+using Archaeo.Sound;
 
 namespace Archaeo.UI
 {
@@ -98,6 +99,7 @@ namespace Archaeo.UI
                 // Picazo rápido, con aceleración, y tierra al golpear
                 yield return StartCoroutine(Rotate(rt, PickRaised, PickStrike, 0.07f, true));
                 StartCoroutine(ParticleBurst(HeadPosition(position, size, PickStrike), dustColor, 5, 130f, 0.45f, 450f));
+                GameAudio.Play(AudioIds.Effect_PickHit);
 
                 yield return new WaitForSecondsRealtime(0.06f);
 
@@ -128,6 +130,7 @@ namespace Archaeo.UI
             {
                 yield return StartCoroutine(Rotate(rt, angle, target, 0.16f, false));
                 StartCoroutine(ParticleBurst(HeadPosition(position, size, target), dustColor, 3, 60f, 0.4f, 120f));
+                GameAudio.Play(AudioIds.Effect_BrushSweep);
 
                 angle = target;
                 target = -target;

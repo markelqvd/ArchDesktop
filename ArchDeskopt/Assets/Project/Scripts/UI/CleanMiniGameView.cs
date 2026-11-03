@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Archaeo.Sound;
 
 namespace Archaeo.UI
 {
@@ -62,6 +63,32 @@ namespace Archaeo.UI
             if (texture != null) Destroy(texture);
         }
 
+        // ───────────── Sonido de frotar ─────────────
+        AudioHandle scrubHandle;
+        float lastMoveTime;
+
+        void StartScrub()
+        {
+            if (scrubHandle.IsValid) return;
+            scrubHandle = GameAudio.Play(AudioIds.Clean_Scrub);
+        }
+
+        void StopScrub()
+        {
+            if (!scrubHandle.IsValid) return;
+            GameAudio.Stop(scrubHandle);
+            scrubHandle = AudioHandle.None;
+        }
+
+        // El bucle solo suena mientras el ratón se mueve de verdad
+        void UpdateScrubVolume()
+        {
+            if (!scrubHandle.IsValid) return;
+            GameAudio.SetVolume(scrubHandle, Time.unscaledTime - lastMoveTime < 0.12f ? 1f : 0f);
+        }
+
+        void OnDisable() => StopScrub();
+
         /// Empieza una limpieza nueva con una capa de tierra distinta y el tiempo completo.
         public void Begin()
         {
@@ -77,6 +104,8 @@ namespace Archaeo.UI
             }
 
             StopAllCoroutines();   // por si quedaba una pausa de una partida anterior
+            StopScrub();
+            GameAudio.Play(AudioIds.Clean_Start);
 
             GenerateDirt();
             cleaned = 0;
@@ -125,6 +154,7 @@ namespace Archaeo.UI
         {
             if (finished) return;
             hasLast = false;
+            StartScrub();
             HandlePointer(e);
         }
 
@@ -134,7 +164,11 @@ namespace Archaeo.UI
             HandlePointer(e);
         }
 
-        public void OnPointerUp(PointerEventData e) => hasLast = false;
+        public void OnPointerUp(PointerEventData e)
+        {
+            hasLast = false;
+            StopScrub();
+        }
 
         void HandlePointer(PointerEventData e)
         {
@@ -152,6 +186,7 @@ namespace Archaeo.UI
             if (hasLast) StampLine(lastPoint, p);
             else Stamp(p.x, p.y);
 
+            if (!hasLast || p != lastPoint) lastMoveTime = Time.unscaledTime;
             lastPoint = p;
             hasLast = true;
         }
@@ -204,6 +239,8 @@ namespace Archaeo.UI
         // ───────────── Progreso y tiempo ─────────────
         void Update()
         {
+            UpdateScrubVolume();
+
             // Reloj real: el tiempo corre aunque los frames vayan lentos
             if (!finished && timeLimitSeconds > 0f)
             {
@@ -231,6 +268,8 @@ namespace Archaeo.UI
         {
             finished = true;
             hasLast = false;
+            StopScrub();
+            GameAudio.Play(AudioIds.Clean_Complete);
 
             // Revelar el resto de la tierra
             for (int i = 0; i < pixels.Length; i++) pixels[i].a = 0;
@@ -245,6 +284,8 @@ namespace Archaeo.UI
         {
             finished = true;
             hasLast = false;
+            StopScrub();
+            GameAudio.Play(AudioIds.Clean_Fail);
 
             if (timerText != null) timerText.text = "¡Tiempo!";
             if (progressText != null) progressText.text = "Se acabó el tiempo";
@@ -279,6 +320,7 @@ namespace Archaeo.UI
             if (seconds == shownSeconds) return;   // solo se reescribe cuando cambia el segundo
 
             shownSeconds = seconds;
+            if (seconds > 0 && seconds <= 5) GameAudio.Play(AudioIds.Minigame_TimerWarning);
             timerText.text = $"Tiempo: {seconds} s";
             timerText.color = seconds <= 5 ? new Color(1f, 0.4f, 0.35f) : Color.white;
         }

@@ -5,6 +5,7 @@ using Archaeo.Data;
 using Archaeo.Discovery;
 using Archaeo.Platform;
 using Archaeo.Save;
+using Archaeo.Sound;
 
 namespace Archaeo.UI
 {
@@ -72,14 +73,33 @@ namespace Archaeo.UI
             int target = TargetIndex();
             if (target == current || transitioning) return;
 
+            ChangeLayer(target);
+        }
+
+        void ChangeLayer(int target)
+        {
             if (dust == null)
             {
+                Debug.LogWarning("[Mapa] El campo 'Dust' está vacío: el cambio de capa es instantáneo. " +
+                                 "Arrastra el objeto Dust al campo Dust de este controlador.", this);
                 ApplyLayer(target);
                 return;
             }
 
+            Debug.Log($"[Mapa] Cambio a '{layers[target].name}' con polvo.", this);
+            GameAudio.Play(AudioIds.Map_Transition);
             transitioning = true;
             dust.Play(() => ApplyLayer(target), OnDustDone);
+        }
+
+        /// Prueba rápida: cambia a la siguiente capa (y vuelve a la primera tras la última). Solo en Play.
+        [ContextMenu("Probar cambio de capa")]
+        void TestChange()
+        {
+            if (!Application.isPlaying || layers == null || layers.Length < 2 || transitioning) return;
+
+            int target = current >= layers.Length - 1 ? 0 : current + 1;
+            ChangeLayer(target);
         }
 
         void OnDustDone()
@@ -116,6 +136,7 @@ namespace Archaeo.UI
         void ApplyLayer(int index)
         {
             current = index;
+            MusicDirector.SetMapLayer(index);
 
             Sprite sprite = layers[index].sprite;
             if (sprite != null) mapImage.sprite = sprite;

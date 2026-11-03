@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Archaeo.Data;
+using Archaeo.Sound;
 using Archaeo.Upgrades;
 
 namespace Archaeo.UI
@@ -20,7 +21,12 @@ namespace Archaeo.UI
         {
             upgrade = data;
             buyButton.onClick.RemoveAllListeners();
-            buyButton.onClick.AddListener(() => UpgradeManager.Instance?.TryBuy(upgrade));
+            buyButton.onClick.AddListener(() =>
+            {
+                if (UpgradeManager.Instance != null && UpgradeManager.Instance.TryBuy(upgrade))
+                    GameAudio.Play(AudioIds.UI_BuyUpgrade);
+            });
+            UISoundIgnore.Mark(buyButton.gameObject);   // la compra tiene su propio sonido
             Refresh();
         }
 
