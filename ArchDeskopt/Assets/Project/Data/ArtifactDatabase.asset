@@ -13,6 +13,23 @@ MonoBehaviour:
   m_Name: ArtifactDatabase
   m_EditorClassIdentifier: 
   artifacts:
-  - {fileID: 11400000, guid: 06b3dacc3e42a064ebca5f0216142587, type: 2}
-  - {fileID: 11400000, guid: 235d51e67f56f2940859e1545d308c25, type: 2}
-  - {fileID: 11400000, guid: 42c03b7f9be3f7d459a5ff5ec0b769bf, type: 2}
+  - {fileID: 11400000, guid: f73745af6c2012e4aa5819c592f55e71, type: 2}
+  - {fileID: 11400000, guid: bf44e80438dae5e4b8fae6504d00dd2e, type: 2}
+  - {fileID: 11400000, guid: f763856524d7b0742ae216df1711c7f7, type: 2}
+  - {fileID: 11400000, guid: 64dcb7e24214fe448a7decad54fb1f98, type: 2}
+  - {fileID: 11400000, guid: 765473eb763b28e41b6e63c17daae759, type: 2}
+  - {fileID: 11400000, guid: 1704e470176d69841a9d1cb5417247c0, type: 2}
+  - {fileID: 11400000, guid: cd8347398cd72b64aa388f1cb76a30ed, type: 2}
+  - {fileID: 11400000, guid: cbfd6987e44946a4cb8c4e0ca7f00bbf, type: 2}
+  - {fileID: 11400000, guid: c4cca0b660ca7d04e8db5e138a15f5a7, type: 2}
+  - {fileID: 11400000, guid: 4272603735c6a564f91159da4efac4fc, type: 2}
+  - {fileID: 11400000, guid: 5a193534efe757d45bff4f8175e881da, type: 2}
+  - {fileID: 11400000, guid: e7909d86a846d1b408f4cd4790dc892e, type: 2}
+  - {fileID: 11400000, guid: 3083fa3183f798345bd18cd30d69974a, type: 2}
+  - {fileID: 11400000, guid: d9bf53dedcee5f84c860f200b367b85f, type: 2}
+  - {fileID: 11400000, guid: bad5037f98661724e9f90673c6ad11f9, type: 2}
+  - {fileID: 11400000, guid: e7392a5ef9396f54c988d92a2d522f16, type: 2}
+  - {fileID: 11400000, guid: 4bf26a5293bc2a9479f6a1dfb346ca52, type: 2}
+  - {fileID: 11400000, guid: 5b9eba8805d5c04459e9d771c3e18189, type: 2}
+  - {fileID: 11400000, guid: 1e7cf6defc45fb54a990f52f7907cf2d, type: 2}
+  - {fileID: 11400000, guid: cd3685f7e71d88449bc26e2b4f2b5175, type: 2}

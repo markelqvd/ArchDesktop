@@ -20,11 +20,19 @@ namespace Archaeo.Activity
         [Header("Balance")]
         [SerializeField] int maxEventsPerSecond = 8;
         [SerializeField] float pointsPerEvent = 1f;
+        [Tooltip("Guantes de trabajo = 2. Para probar en Play.")]
+        [SerializeField] float mouseMultiplier = 1f;
+        [Tooltip("Teclado del escriba = 2. Para probar en Play.")]
+        [SerializeField] float keyboardMultiplier = 1f;
 
         public ActivityCounter Counter { get; } = new ActivityCounter();
         public ActivityRateLimiter RateLimiter { get; } = new ActivityRateLimiter();
 
         public bool Paused { get; set; }
+
+        /// Multiplicador de los clics / de las pulsaciones de tecla (habilidades Guantes y Teclado).
+        public float MouseMultiplier { get => mouseMultiplier; set => mouseMultiplier = Mathf.Max(0f, value); }
+        public float KeyboardMultiplier { get => keyboardMultiplier; set => keyboardMultiplier = Mathf.Max(0f, value); }
 
         /// Multiplicador de las mejoras (Potencia de excavación). Puntos por evento = base × multiplicador.
         public float PointsMultiplier { get; set; } = 1f;
@@ -56,6 +64,8 @@ namespace Archaeo.Activity
             // Se aplican cada frame para que los cambios del Inspector surtan efecto en Play
             RateLimiter.MaxPerSecond = maxEventsPerSecond;
             Counter.PointsPerEvent = pointsPerEvent * PointsMultiplier;
+            Counter.MouseMultiplier = mouseMultiplier;
+            Counter.KeyboardMultiplier = keyboardMultiplier;
             RefreshPoller();
 
             while (queue.TryDequeue(out ActivityEvent e))

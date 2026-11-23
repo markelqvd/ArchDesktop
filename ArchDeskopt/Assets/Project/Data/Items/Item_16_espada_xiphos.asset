@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fa9208b0c7dd7e4884f6b51673744b1, type: 3}
+  m_Name: Item_16_espada_xiphos
+  m_EditorClassIdentifier: Assembly-CSharp::Archaeo.Data.ArtifactData
+  id: g_espada_xiphos
+  displayName: Espada xiphos
+  description: 
+  era: Grecia antigua
+  sprite: {fileID: 5646122319199998903, guid: 96414cf02b2299c41939641de701a54b, type: 3}
+  rarity: {fileID: 11400000, guid: 678a78d77543a794d95bdd06b2821be7, type: 2}
+  zone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
+  economyRarity: 2
+  zoneIndex: 0
+  baseIncomePerMinute: 6
+  levelIncomes: []
+  baseLevelUpCost: 50
+  costGrowth: 1.5
+  restorationType: 0

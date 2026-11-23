@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b392c1f66c82aee41a46205b1a722ece, type: 3}
   m_Name: Comun
   m_EditorClassIdentifier: 
-  displayName: 
+  displayName: "Com\xFAn"
   color: {r: 0.3207547, g: 0.3207547, b: 0.3207547, a: 1}
   dropWeight: 0.6
   initialReward: 10

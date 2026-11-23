@@ -15,6 +15,10 @@ namespace Archaeo.Activity
         /// PA que genera cada evento (GDD: 1 inicialmente; la mejora "Potencia de excavación" lo subirá).
         public float PointsPerEvent { get; set; } = 1f;
 
+        /// Multiplicadores por tipo de entrada (Guantes de trabajo = clics x2, Teclado del escriba = teclas x2).
+        public float MouseMultiplier { get; set; } = 1f;
+        public float KeyboardMultiplier { get; set; } = 1f;
+
         /// Se dispara con cada evento aceptado, con los puntos que ha dado.
         public event Action<float> PointsAdded;
 
@@ -23,8 +27,9 @@ namespace Archaeo.Activity
             if (e.Kind == ActivityKind.Mouse) MouseEvents++;
             else KeyboardEvents++;
 
-            TotalPoints += PointsPerEvent;
-            PointsAdded?.Invoke(PointsPerEvent);
+            float points = PointsPerEvent * (e.Kind == ActivityKind.Mouse ? MouseMultiplier : KeyboardMultiplier);
+            TotalPoints += points;
+            PointsAdded?.Invoke(points);
         }
 
         public void RegisterRejected() => RejectedEvents++;

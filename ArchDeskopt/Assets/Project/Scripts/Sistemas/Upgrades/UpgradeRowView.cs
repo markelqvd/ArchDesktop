@@ -38,6 +38,33 @@ namespace Archaeo.UI
             int level = manager.GetLevel(upgrade);
             nameText.text = upgrade.displayName;
 
+            // Mejoras del diseño nuevo (con descripción)
+            if (!string.IsNullOrEmpty(upgrade.description))
+            {
+                bool isMap = upgrade.type == UpgradeType.Map;
+                bool multi = upgrade.maxLevel - upgrade.startLevel > 1;
+
+                if (upgrade.IsMaxed(level))
+                {
+                    infoText.text = multi ? $"{upgrade.description}\nNivel {level}/{upgrade.maxLevel} (máx.)" : upgrade.description;
+                    buyButtonText.text = isMap ? "HECHO" : "MÁX.";
+                    buyButton.interactable = false;
+                }
+                else if (!manager.IsUnlocked(upgrade))
+                {
+                    infoText.text = $"{upgrade.description}\nPrimero: {upgrade.requires.displayName}";
+                    buyButtonText.text = "Bloqueado";
+                    buyButton.interactable = false;
+                }
+                else
+                {
+                    infoText.text = multi ? $"{upgrade.description}\nNivel {level}/{upgrade.maxLevel}" : upgrade.description;
+                    buyButtonText.text = $"{(isMap ? "Hacer" : level == 0 ? "Comprar" : "Mejorar")} ({manager.NextCost(upgrade):N0})";
+                    buyButton.interactable = manager.CanAfford(upgrade);
+                }
+                return;
+            }
+
             if (upgrade.IsMaxed(level))
             {
                 infoText.text = $"Nivel {level} (máx.) · {upgrade.EffectText(level)}";

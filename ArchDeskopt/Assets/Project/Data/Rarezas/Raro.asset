@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b392c1f66c82aee41a46205b1a722ece, type: 3}
   m_Name: Raro
   m_EditorClassIdentifier: 
-  displayName: 
+  displayName: Raro
   color: {r: 0, g: 0.08242774, b: 1, a: 1}
   dropWeight: 0.1
   initialReward: 60

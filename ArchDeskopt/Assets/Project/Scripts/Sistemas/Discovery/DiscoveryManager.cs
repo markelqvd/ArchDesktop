@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Archaeo.Data;
 using Archaeo.Excavation;
+using Archaeo.Economy;
+using Archaeo.Qte;
 
 namespace Archaeo.Discovery
 {
@@ -75,6 +77,9 @@ namespace Archaeo.Discovery
 
         void OnFindMade(int findNumber, bool early)
         {
+            // Con el diseño nuevo, el QTE decide cuándo y cómo se consigue el objeto
+            if (QteManager.Handles) return;
+
             ArtifactData artifact = ChooseArtifact();
             if (artifact == null)
             {
@@ -82,20 +87,48 @@ namespace Archaeo.Discovery
                 return;
             }
 
+            GrantArtifact(artifact, false);
+        }
+
+        /// Elige el objeto que saldrá en este hallazgo (sin dárselo todavía al jugador).
+        public ArtifactData PrepareFind() => ChooseArtifact();
+
+        /// Da el objeto al jugador.
+        ///   restoreNow = true  -> va directo al museo (flujo con QTE).
+        ///   restoreNow = false -> queda pendiente de restaurar (flujo antiguo).
+        /// Nuevo -> entra en la colección. Repetido -> sube una copia; si ya está en rango S, se vende.
+        public GrantResult GrantArtifact(ArtifactData artifact, bool restoreNow)
+        {
             if (Collection.Has(artifact.id))
             {
+                // Copia sobrante de un objeto que ya está en rango S: se vende automáticamente
+                var eco = EconomyManager.Instance;
+                if (eco != null && eco.Formulas != null && Collection.TryGet(artifact.id, out var owned)
+                    && eco.IsMaxRank(artifact, owned.Level))
+                {
+                    double coins = eco.SellExtraCopy(artifact);
+                    Debug.Log($"[Descubrimiento] Copia sobrante de {artifact.displayName} (rango S): vendida por {coins:0.##} monedas");
+                    ArtifactFound?.Invoke(artifact, false, owned.Level);
+                    return new GrantResult(GrantOutcome.Sold, owned.Level, coins);
+                }
+
                 int level = Collection.LevelUp(artifact.id);
                 Debug.Log($"[Descubrimiento] Repetido: {artifact.displayName} -> nivel {level}");
                 ArtifactFound?.Invoke(artifact, false, level);
+                return new GrantResult(GrantOutcome.Copy, level, 0);
             }
-            else
-            {
-                Collection.AddNew(artifact);
-                pendingRestorations.Enqueue(artifact);
-                Debug.Log($"[Descubrimiento] ¡NUEVO!: {artifact.displayName} ({artifact.restorationType}). Pendientes: {PendingCount}");
-                ArtifactFound?.Invoke(artifact, true, 1);
-                PendingChanged?.Invoke();
-            }
+
+            Collection.AddNew(artifact);
+            if (restoreNow) Collection.MarkRestored(artifact.id);
+            else pendingRestorations.Enqueue(artifact);
+
+            Debug.Log($"[Descubrimiento] ¡NUEVO!: {artifact.displayName}. Pendientes: {PendingCount}");
+            ArtifactFound?.Invoke(artifact, true, 1);
+
+            if (restoreNow) RestorationCompleted?.Invoke(artifact);
+            else PendingChanged?.Invoke();
+
+            return new GrantResult(GrantOutcome.New, 1, 0);
         }
 
         ArtifactData ChooseArtifact()
@@ -111,6 +144,15 @@ namespace Archaeo.Discovery
                 pool = database.All;
 
             Spawner.NewArtifactBoost = newArtifactBoost;
+            var cfg = EconomyManager.Instance != null ? EconomyManager.Instance.Config : null;
+            Spawner.Config = cfg;
+            if (cfg != null)
+            {
+                var upgrades = Archaeo.Upgrades.UpgradeManager.Instance;
+                int mapLevel = upgrades != null ? upgrades.MapLevel : 0;
+                Spawner.IsRarityUnlocked = r => mapLevel >= cfg.rarityUnlockMapLevel[(int)r];
+                Spawner.RareBoost = 1f + 0.1f * (upgrades != null ? upgrades.LevelOf(UpgradeType.Lupa) : 0);
+            }
             return Spawner.Pick(pool, a => Collection.Has(a.id));
         }
 
@@ -136,5 +178,15 @@ namespace Archaeo.Discovery
 
             PendingChanged?.Invoke();
         }
+    }
+
+    public enum GrantOutcome { New, Copy, Sold }
+
+    public readonly struct GrantResult
+    {
+        public readonly GrantOutcome Outcome;
+        public readonly int Level;      // copias del objeto tras el hallazgo
+        public readonly double Coins;   // monedas obtenidas al vender una copia
+        public GrantResult(GrantOutcome outcome, int level, double coins) { Outcome = outcome; Level = level; Coins = coins; }
     }
 }

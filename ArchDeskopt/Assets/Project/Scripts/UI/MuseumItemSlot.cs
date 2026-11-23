@@ -14,6 +14,21 @@ namespace Archaeo.UI
         [SerializeField] TMP_Text levelText;
         [SerializeField] TMP_Text incomeText;   // "+1 / s"
 
+        void Awake()
+        {
+            // El marco ocupa toda la casilla: se pasa al fondo para que no tape el icono
+            if (rarityFrame != null)
+            {
+                rarityFrame.transform.SetAsFirstSibling();
+                rarityFrame.raycastTarget = false;
+            }
+            if (icon != null)
+            {
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
+            }
+        }
+
         public void Setup(ArtifactData item, int level, float incomePerSecond = 0f)
         {
             nameText.text = item.displayName;

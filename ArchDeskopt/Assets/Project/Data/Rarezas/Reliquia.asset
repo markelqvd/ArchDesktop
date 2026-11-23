@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b392c1f66c82aee41a46205b1a722ece, type: 3}
   m_Name: Reliquia
   m_EditorClassIdentifier: 
-  displayName: 
+  displayName: Legendario
   color: {r: 1, g: 0.702134, b: 0, a: 1}
   dropWeight: 0.01
   initialReward: 500

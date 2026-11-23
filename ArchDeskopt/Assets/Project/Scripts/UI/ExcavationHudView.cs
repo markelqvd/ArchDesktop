@@ -30,10 +30,18 @@ namespace Archaeo.UI
             if (progress != null) progress.Changed -= Refresh;
         }
 
+        void Update()
+        {
+            // Mientras espera el tiempo mínimo entre QTEs, enseña la cuenta atrás
+            if (progress != null && progress.Waiting) Refresh();
+        }
+
         void Refresh()
         {
             bar.value = progress.Normalized;
-            progressText.text = $"{progress.Points:0} / {progress.Threshold:0}";
+            progressText.text = progress.Waiting
+                ? $"{progress.Points:0} / {progress.Threshold:0}  ({progress.SecondsUntilReady:0} s)"
+                : $"{progress.Points:0} / {progress.Threshold:0}";
             findsText.text = $"Hallazgos: {progress.TotalFinds}";
         }
     }

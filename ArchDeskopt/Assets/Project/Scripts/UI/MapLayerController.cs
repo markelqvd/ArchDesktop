@@ -6,6 +6,7 @@ using Archaeo.Discovery;
 using Archaeo.Platform;
 using Archaeo.Save;
 using Archaeo.Sound;
+using Archaeo.Upgrades;
 
 namespace Archaeo.UI
 {
@@ -36,7 +37,11 @@ namespace Archaeo.UI
         [Tooltip("Nube de polvo que se usa al cambiar de capa. Si se deja vacío, el cambio es instantáneo.")]
         [SerializeField] PixelDustBurst dust;
 
-        [Header("Qué cuenta")]
+        [Header("Qué cambia el mapa")]
+        [Tooltip("Marcado: el mapa cambia al comprar las mejoras de la pestaña Mapa de la tienda (1 mejora = 1 capa). Desmarcado: por objetos restaurados.")]
+        [SerializeField] bool useMapUpgrades = true;
+
+        [Header("Qué cuenta (solo si no se usan mejoras de mapa)")]
         [Tooltip("Marcado: cuentan los objetos restaurados (los del museo). Desmarcado: cuentan también los encontrados sin restaurar.")]
         [SerializeField] bool countRestoredOnly = true;
 
@@ -59,17 +64,29 @@ namespace Archaeo.UI
 
             if (discovery != null) discovery.RestorationCompleted += OnRestored;
             if (SaveManager.Instance != null) SaveManager.Instance.Loaded += OnLoaded;
+            if (UpgradeManager.Instance != null) UpgradeManager.Instance.MapPurchased += OnMapPurchased;
         }
 
         void OnDestroy()
         {
             if (discovery != null) discovery.RestorationCompleted -= OnRestored;
             if (SaveManager.Instance != null) SaveManager.Instance.Loaded -= OnLoaded;
+            if (UpgradeManager.Instance != null) UpgradeManager.Instance.MapPurchased -= OnMapPurchased;
+        }
+
+        // Compra de una mejora de mapa: nueva capa, con polvo
+        void OnMapPurchased(int level)
+        {
+            if (!useMapUpgrades) return;
+            int target = TargetIndex();
+            if (target == current || transitioning) return;
+            ChangeLayer(target);
         }
 
         // Al restaurar un objeto: si toca subir de capa, con polvo
         void OnRestored(ArtifactData artifact)
         {
+            if (useMapUpgrades) return;
             int target = TargetIndex();
             if (target == current || transitioning) return;
 
@@ -119,6 +136,12 @@ namespace Archaeo.UI
 
         int TargetIndex()
         {
+            if (useMapUpgrades)
+            {
+                int level = UpgradeManager.Instance != null ? UpgradeManager.Instance.MapLevel : 0;
+                return Mathf.Clamp(level, 0, layers.Length - 1);
+            }
+
             int count = 0;
             if (discovery != null)
             {
@@ -141,15 +164,19 @@ namespace Archaeo.UI
             Sprite sprite = layers[index].sprite;
             if (sprite != null) mapImage.sprite = sprite;
 
-            // Cada objeto solo se ve con la capa de su lista
+            // Un objeto se ve si está en la lista de la capa actual (puede estar en varias capas)
             for (int i = 0; i < layers.Length; i++)
             {
                 var objects = layers[i].onlyInThisLayer;
                 if (objects == null) continue;
-
                 foreach (var go in objects)
-                    if (go != null) go.SetActive(i == index);
+                    if (go != null) go.SetActive(false);
             }
+
+            var visible = layers[index].onlyInThisLayer;
+            if (visible != null)
+                foreach (var go in visible)
+                    if (go != null) go.SetActive(true);
         }
 
         /// Todas las capas deben medir lo mismo en píxeles: si no, los píxeles del mapa se deformarían.

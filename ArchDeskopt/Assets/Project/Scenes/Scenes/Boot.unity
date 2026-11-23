@@ -149,6 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelGrowth: 1.5
+  config: {fileID: 11400000, guid: 5ddabd4fcc6378b4480452c203ccf540, type: 2}
 --- !u!4 &207426044
 Transform:
   m_ObjectHideFlags: 0
@@ -198,6 +199,8 @@ MonoBehaviour:
   countKeyboard: 1
   maxEventsPerSecond: 0
   pointsPerEvent: 1
+  mouseMultiplier: 2
+  keyboardMultiplier: 1
 --- !u!4 &440058225
 Transform:
   m_ObjectHideFlags: 0
@@ -249,6 +252,8 @@ MonoBehaviour:
   uiGroup: {fileID: 0}
   ambienceGroup: {fileID: 0}
   silenceWhenUnfocused: 0
+  respectFocusInEditor: 0
+  musicOnStart: 
   testEventId: UI_Click
   testTrackId: Music_Excavation
 --- !u!4 &675280600
@@ -352,7 +357,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   database: {fileID: 11400000, guid: a832604c299ada74887367208ba7d5e1, type: 2}
   currentZone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
-  firstArtifact: {fileID: 11400000, guid: 42c03b7f9be3f7d459a5ff5ec0b769bf, type: 2}
+  firstArtifact: {fileID: 11400000, guid: f73745af6c2012e4aa5819c592f55e71, type: 2}
   newArtifactBoost: 4
 --- !u!4 &881957035
 Transform:
@@ -673,7 +678,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentZone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
-  thresholdOverride: 40
+  thresholdOverride: 0
+  minSecondsOverride: -1
   earlyFindChancePerPoint: 0.0003
 --- !u!4 &2142777334
 Transform:

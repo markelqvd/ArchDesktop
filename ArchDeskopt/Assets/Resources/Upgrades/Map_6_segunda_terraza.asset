@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e1d3e25468439a42813f369dc7ea950, type: 3}
+  m_Name: Map_6_segunda_terraza
+  m_EditorClassIdentifier: Assembly-CSharp::Archaeo.Data.UpgradeData
+  id: map_6
+  displayName: Segunda terraza
+  type: 5
+  description: Cambia el mapa.
+  requires: {fileID: 11400000, guid: 715daac8fa076d040b1b8b1e259af9de, type: 2}
+  order: 5
+  startLevel: 0
+  maxLevel: 1
+  baseCost: 50000
+  costGrowth: 1
+  valuePerLevel: []
+  effectFormat: '{0}'

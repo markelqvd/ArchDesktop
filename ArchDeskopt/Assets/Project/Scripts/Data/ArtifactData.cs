@@ -13,6 +13,11 @@ namespace Archaeo.Data
         public RarityData rarity;
         public ZoneData zone;
 
+        [Header("Economía (documento de diseño)")]
+        public EconomyRarity economyRarity = EconomyRarity.Common;
+        [Range(0, 5), Tooltip("0 = Huerto del abuelo ... 5 = Templo de la Luna")]
+        public int zoneIndex;
+
         [Header("Economía")]
         public float baseIncomePerMinute = 10f;
         public float[] levelIncomes;      // opcional: ingresos/min por nivel (nivel 1 = índice 0)

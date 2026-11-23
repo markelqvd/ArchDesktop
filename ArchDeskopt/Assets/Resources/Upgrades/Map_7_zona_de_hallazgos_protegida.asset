@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e1d3e25468439a42813f369dc7ea950, type: 3}
+  m_Name: Map_7_zona_de_hallazgos_protegida
+  m_EditorClassIdentifier: Assembly-CSharp::Archaeo.Data.UpgradeData
+  id: map_7
+  displayName: Zona de hallazgos protegida
+  type: 5
+  description: Cambia el mapa. Empiezan a salir objetos Legendario.
+  requires: {fileID: 11400000, guid: 1c5ad568401149a4f8b5eb6de4cfc977, type: 2}
+  order: 6
+  startLevel: 0
+  maxLevel: 1
+  baseCost: 150000
+  costGrowth: 1
+  valuePerLevel: []
+  effectFormat: '{0}'

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using Archaeo.Core;
 using Archaeo.Data;
 using Archaeo.Discovery;
+using Archaeo.Qte;
 
 namespace Archaeo.UI
 {
@@ -63,6 +64,9 @@ namespace Archaeo.UI
 
         void OnArtifactFound(ArtifactData artifact, bool isNew, int level)
         {
+            // Con el diseño nuevo, el panel de QTE se encarga de todo
+            if (QteManager.Handles) return;
+
             // Los repetidos no interrumpen
             if (!isNew) return;
 

@@ -2,7 +2,23 @@ using UnityEngine;
 
 namespace Archaeo.Data
 {
-    public enum UpgradeType { DigPower, Tools, Team, Helper, Museum }
+    public enum UpgradeType
+{
+    // Antiguos (no se usan con el diseño nuevo)
+    DigPower, Tools, Team, Helper, Museum,
+    // Pestaña Mapa
+    Map,
+    // Excavación
+    Gloves, Keyboard, Pickaxe, AutoDig, TreasureMap,
+    // Precisión
+    Pulse, Hourglass, Instinct, Chain, Expert,
+    // Museo
+    Showcase, Pamphlet,
+    // Suerte
+    Lupa, Detector, Clover,
+    // Comodidad
+    Focus,
+}
 
     /// Una mejora comprable en la tienda.
     /// Los niveles van de startLevel a maxLevel. El valor del efecto en cada nivel
@@ -13,6 +29,13 @@ namespace Archaeo.Data
         public string id;                 // único y estable (se usa en el guardado, NO cambiar)
         public string displayName;
         public UpgradeType type;
+
+        [TextArea, Tooltip("Texto del efecto en la tienda (diseño nuevo). Si se deja vacío se usa 'effectFormat'.")]
+        public string description;
+        [Tooltip("Mejora que hay que haber comprado antes (p. ej. la cadena de mejoras del mapa).")]
+        public UpgradeData requires;
+        [Tooltip("Orden en la lista de la tienda (menor primero).")]
+        public int order;
 
         [Tooltip("Nivel con el que se empieza. Potencia de excavación: 1. Ayudantes: 0 (aún no tienes ninguno).")]
         public int startLevel = 1;

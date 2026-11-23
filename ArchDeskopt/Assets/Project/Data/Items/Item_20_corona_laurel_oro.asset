@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fa9208b0c7dd7e4884f6b51673744b1, type: 3}
+  m_Name: Item_20_corona_laurel_oro
+  m_EditorClassIdentifier: Assembly-CSharp::Archaeo.Data.ArtifactData
+  id: g_corona_laurel_oro
+  displayName: Corona de laurel de oro
+  description: 
+  era: Grecia antigua
+  sprite: {fileID: -2693594746556847788, guid: 821b43c35fcfa5f4c95a7f6f8241f452, type: 3}
+  rarity: {fileID: 11400000, guid: 006d38099a190b448a6c3a36d5774cd8, type: 2}
+  zone: {fileID: 11400000, guid: 1697fbb83c8027841848b613068511d7, type: 2}
+  economyRarity: 4
+  zoneIndex: 0
+  baseIncomePerMinute: 40
+  levelIncomes: []
+  baseLevelUpCost: 50
+  costGrowth: 1.5
+  restorationType: 0
